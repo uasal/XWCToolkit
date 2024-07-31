@@ -19,9 +19,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # add_compile_definitions(_XOPEN_SOURCE=700)
 # add_compile_definitions(MX_OLD_GSL)
 
-
 #######################################
-## Set default libary type
+## Set default library type
 #######################################
 
 # Set default to build shared libraries
@@ -47,16 +46,17 @@ set(MAGAOX_PREFIX "/opt/MagAOX" CACHE PATH "Base directory for MagAOX")
 set(PREFIX "${CMAKE_INSTALL_PREFIX}" CACHE PATH "Default system installation path" FORCE) # CMAKE_INSTALL_PREFIX defaults to /usr/local
 
 # Define paths based on the base variables
-set(BIN_PATH "${MAGAOX_PREFIX}/${CMAKE_INSTALL_BINDIR}" CACHE PATH "Path to the bin directory")
+# set(BIN_PATH "${MAGAOX_PREFIX}/${CMAKE_INSTALL_BINDIR}" CACHE PATH "Path to the bin directory")
 set(DRIVER_PATH "${MAGAOX_PREFIX}/drivers" CACHE PATH "Path to the drivers directory")
 set(FIFO_PATH "${MAGAOX_PREFIX}/drivers/fifos" CACHE PATH "Path to the fifos directory")
 
+set(BIN_PATH "${PREFIX}/${CMAKE_INSTALL_BINDIR}" CACHE PATH "Path to the bin directory")
 set(LIB_PATH "${PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path to the library directory")
+set(HEADER_PATH "${PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "Path to the include directory")
 
 set(MILK_PATH "${PREFIX}/milk" CACHE PATH "Path to the milk directory")
 set(ISIO_PATH "${MILK_PATH}/${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "Path to ImageStreamIO in the milk include directory")
 set(MXLIB_PATH "${PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path to the mxlib lib directory")
-set(MXLIB_HEADER_PATH "${PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "Path to the mxlib include directory")
 
 # Check if MAGAOX_PREFIX exists
 if(NOT EXISTS "${MAGAOX_PREFIX}")
@@ -113,12 +113,10 @@ endif()
 ## Add subfolders
 #######################################
 
-add_subdirectory(lib/libtelnet)
-add_subdirectory(flatlogs)
+add_subdirectory(lib)
+add_subdirectory(src)
 # add_subdirectory(gui)
-add_subdirectory(INDI)
-add_subdirectory(libMagAOX)
-# add_subdirectory(utils)
+add_subdirectory(utils)
 
 #######################################
 ## Set flags
@@ -138,3 +136,50 @@ add_compile_flags_to_all_targets(-fPIC)
 #######################################
 
 set_position_independent_code_for_all_targets()
+
+#######################################
+## Install
+#######################################
+
+##### Executables #####
+install(
+        TARGETS flatlogcodes
+                indiserver 
+                getINDI 
+                setINDI 
+                evalINDI 
+                xindidriver
+                cursesINDI
+                logdump
+                logstream
+                logsurgeon
+                xrif2fits
+                xrif2shmim
+        DESTINATION ${BIN_PATH}
+        )
+
+# # Symbolic link
+# # If $BIN_PATH is different to ${PREFIX}/${CMAKE_INSTALL_BINDIR}
+# # Normalize the paths to absolute paths
+# get_filename_component(abs_path1 "${BIN_PATH}" ABSOLUTE)
+# get_filename_component(abs_path2 "${PREFIX}/${CMAKE_INSTALL_BINDIR}" ABSOLUTE)
+# # Compare the normalized paths
+# if(abs_path1 STREQUAL abs_path2)
+#         hyperlink_targets(
+#                         TARGETS indiserver getINDI setINDI evalINDI
+#                         DESTINATION "${PREFIX}/${CMAKE_INSTALL_BINDIR}"
+#                         )
+# endif()
+
+
+##### Libraries #####
+install(
+        TARGETS flatlogslib 
+                libtelnet
+                libcommon
+                liblilxml
+                XWC
+        LIBRARY DESTINATION ${LIB_PATH}
+        )
+
+##### Headers #####

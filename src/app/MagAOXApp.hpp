@@ -45,7 +45,7 @@
 #include "indiMacros.hpp"
 #include "indiUtils.hpp"
 
-//#include "../../INDI/libcommon/System.hpp"
+//#include "../../lib/INDI/libcommon/System.hpp"
 using namespace mx::app;
 
 using namespace MagAOX::logger;

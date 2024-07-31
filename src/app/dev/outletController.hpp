@@ -13,8 +13,8 @@
 #include <mx/sys/timeUtils.hpp>
 
 
-#include "../../INDI/libcommon/IndiProperty.hpp"
-#include "../../libMagAOX/libMagAOX.hpp"
+#include "../../lib/INDI/libcommon/IndiProperty.hpp"
+#include "../../libMagAOX.hpp"
 #include "../indiUtils.hpp"
 
 

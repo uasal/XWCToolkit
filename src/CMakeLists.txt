@@ -1,71 +1,17 @@
 ## Require milk ImageStreamIO headers
-if(EXISTS ${ISIO_PATH})
-    message(STATUS "Milk path to ${ISIO_PATH} exists.")
-else()
-    message(FATAL_ERROR "Please set the variable ${ISIO_PATH} to the milk path to the ImageStreamIO folder.")
-endif()
+require_isio()
 
-## Require milk libraries
-if(EXISTS ${MILK_PATH}/${CMAKE_INSTALL_LIBDIR})
-    message(STATUS "Milk lib path ${MILK_PATH}/${CMAKE_INSTALL_LIBDIR} exists.")
-    # Collect all library files in the directory
-    file(GLOB MILK_LIB_FILES "${MILK_PATH}/${CMAKE_INSTALL_LIBDIR}/lib*.so")
-else()
-    message(FATAL_ERROR "Milk libraries not found at ${MILK_PATH}/${CMAKE_INSTALL_LIBDIR}. Please se ${MILK_PATH}.")
-endif()
+## Require milk library
+require_milk()
 
+## Require mxlib library & headers
+require_mxlib()
 
-## Require mxlib library
-find_library(MXLIB "libmxlib.so" PATHS ${MXLIB_PATH} REQUIRED)
-if (NOT MXLIB)
-    message(FATAL_ERROR "libmxlib.so not found at location ${MXLIB_PATH}. Please install it here.")
-else()
-    message(STATUS "Found libmxlib.so at location ${MXLIB}")
-endif()
-
-
-message(STATUS "Searching for mxlib header in ${MXLIB_HEADER_PATH}")
-# Check mxlib header files exist
-find_path(MXLIB_HEADERS NAMES "mx/improc/milkImage.hpp" PATHS "${MXLIB_HEADER_PATH}")
-
-# Check if the header files were found
-if(NOT MXLIB_HEADERS)
-    message(FATAL_ERROR "Header files for mxlib not found in ${MXLIB_HEADER_PATH}.")
-else()
-    message(STATUS "Header files for mxlib found at location ${MXLIB_HEADERS}")
-endif()
-
-## Require Eigen (needed by mxlib)
-# Find the Eigen library & include directories
-find_package(Eigen3 REQUIRED)
-if(Eigen3_FOUND)
-    message(STATUS "Eigen3 headers found: ${EIGEN3_INCLUDE_DIR}")
-else()
-    message(FATAL_ERROR "Package Eigen3 not found. Please install it.")
-endif()
-
-
-## Require libudev-dev (needed by tty)
-pkg_check_modules(LIBUDEV REQUIRED libudev)
-if(LIBUDEV_FOUND)
-    message(STATUS "libudev found ${LIBUDEV_INCLUDE_DIRS}")
-else()
-    message(FATAL_ERROR "libudev not found. Please install it.")
-endif()
-
+## Require Eigen library & include directories
+require_eigen()
 
 ## Require flatbuffers
-# Find flatbuffers executable 'flatc'
-set(EXECUTABLE_NAME "flatc")
-# Use GLOB to check flatc exists in ${PREFIX}/${CMAKE_INSTALL_BINDIR}
-file(GLOB DEFAULT_FLATBUFFERS_PATH "${PREFIX}/${CMAKE_INSTALL_BINDIR}/${EXECUTABLE_NAME}")
-# Check if a match was found
-if (DEFAULT_FLATBUFFERS_PATH)
-    list(GET DEFAULT_FLATBUFFERS_PATH 0 FOUND_FLATBUFFERS)
-    message(STATUS "Found ${EXECUTABLE_NAME}: ${DEFAULT_FLATBUFFERS_PATH}")
-else()
-    message(FATAL_ERROR "${EXECUTABLE_NAME} not found at location ${PREFIX}/${CMAKE_INSTALL_BINDIR}. Please install it here.")
-endif()
+require_flatbuffers()
 
 # Source files
 set(SOURCES
@@ -100,7 +46,7 @@ add_custom_command(
             ${CMAKE_CURRENT_SOURCE_DIR}/logger/generated/binarySchemata.inc
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/logger/types/generated    
     COMMAND ${CMAKE_COMMAND} -E echo "Executing flatlogcodes"    
-    COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/logger bash -c "${CMAKE_SOURCE_DIR}/flatlogs/bin/flatlogcodes"
+    COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/logger bash -c "${CMAKE_SOURCE_DIR}/lib/flatlogs/bin/flatlogcodes"
     COMMAND ${CMAKE_COMMAND} -E echo "Generating header files"    
     COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/logger/types/generated bash -c "for bfb in *.bfbs; do xxd -i \$bfb > \$(basename \$bfb).h; done"
     COMMAND ${CMAKE_COMMAND} -E echo "Generatinc .inc file"
@@ -120,6 +66,7 @@ target_include_directories(XWC_precompiled_header INTERFACE
                             ${EIGEN3_INCLUDE_DIR}                            
                             ${ISIO_PATH}                            
                             ${MXLIB_HEADERS}
+                            ${FLATBUFFERS_HEADERS}
                             ${CMAKE_CURRENT_SOURCE_DIR}
                             ${CMAKE_CURRENT_SOURCE_DIR}/app
                             ${CMAKE_CURRENT_SOURCE_DIR}/app/dev
@@ -132,17 +79,15 @@ target_include_directories(XWC_precompiled_header INTERFACE
                             ${CMAKE_CURRENT_SOURCE_DIR}/sys
                             ${CMAKE_CURRENT_SOURCE_DIR}/tty
                             ${CMAKE_CURRENT_SOURCE_DIR}/utils
-                            ${CMAKE_SOURCE_DIR}/flatlogs/include                            
+                            ${CMAKE_SOURCE_DIR}/lib/flatlogs/include                            
                             )
 
 add_dependencies(XWC_precompiled_header generated_logTypes)
 target_compile_definitions(XWC_precompiled_header INTERFACE MXLIB_MILK)
 
-# Add the MagAOX library
-add_library(MagAOX ${SOURCES})
-message(STATUS "Including header dirs: ${ISIO_PATH} ${EIGEN3_INCLUDE_DIR} ${MXLIB_HEADERS}")
-message(STATUS "Including libraries ${MILK_LIB_FILES} and ${MXLIB}")
-target_include_directories(MagAOX PRIVATE
+# Add the XWC library
+add_library(XWC ${SOURCES})
+target_include_directories(XWC PRIVATE
                             ${EIGEN3_INCLUDE_DIR}                                                 
                             ${MXLIB_HEADERS}
                             ${CMAKE_CURRENT_SOURCE_DIR}
@@ -156,16 +101,10 @@ target_include_directories(MagAOX PRIVATE
                             ${CMAKE_CURRENT_SOURCE_DIR}/sys
                             ${CMAKE_CURRENT_SOURCE_DIR}/tty
                             ${CMAKE_CURRENT_SOURCE_DIR}/utils
-                            ${CMAKE_SOURCE_DIR}/flatlogs/include                            
+                            ${CMAKE_SOURCE_DIR}/lib/flatlogs/include                            
                             )
-target_link_libraries(MagAOX PRIVATE XWC_precompiled_header 
-                                        "${MILK_LIB_FILES}"
-                                        "${MXLIB}"
+target_link_libraries(XWC PRIVATE XWC_precompiled_header 
+                                        ${MILK_LIB_FILES}
+                                        ${MXLIB}
                                         )
-add_dependencies(MagAOX generated_logTypes)
-
-
-# Install rules
-install(TARGETS MagAOX
-    LIBRARY DESTINATION ${LIB_PATH}
-)
+add_dependencies(XWC generated_logTypes)

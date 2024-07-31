@@ -12,7 +12,7 @@
 #include <ImageStreamIO/ImageStruct.h>
 #include <ImageStreamIO/ImageStreamIO.h>
 
-#include "../../libMagAOX/common/paths.hpp"
+#include "../../common/paths.hpp"
 
 namespace MagAOX
 {

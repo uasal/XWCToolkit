@@ -14,8 +14,8 @@
 #include <iostream>
 #include <limits>
 
-#include "../../INDI/libcommon/IndiProperty.hpp"
-#include "../../INDI/libcommon/IndiElement.hpp"
+#include "../../lib/INDI/libcommon/IndiProperty.hpp"
+#include "../../lib/INDI/libcommon/IndiElement.hpp"
 
 
 namespace MagAOX

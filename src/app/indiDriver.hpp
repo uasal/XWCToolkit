@@ -11,10 +11,10 @@
 #ifndef app_indiDriver_hpp
 #define app_indiDriver_hpp
 
-#include "../../INDI/libcommon/IndiDriver.hpp"
-#include "../../INDI/libcommon/IndiElement.hpp"
+#include "../../lib/INDI/libcommon/IndiDriver.hpp"
+#include "../../lib/INDI/libcommon/IndiElement.hpp"
 
-#include "../../INDI/libcommon/IndiClient.hpp"
+#include "../../lib/INDI/libcommon/IndiClient.hpp"
 
 #include "MagAOXApp.hpp"
 
