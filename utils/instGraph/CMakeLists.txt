@@ -40,5 +40,5 @@ target_include_directories(instGraph PRIVATE ${INGR_HEADERS}
                                             ${ISIO_PATH}                            
                                             ${MXLIB_HEADERS}
                                             ${CMAKE_CURRENT_SOURCE_DIR}
-                                            ${CMAKE_SOURCE_DIR}/src
+                                            ${CMAKE_SOURCE_DIR}/XWC
                                             )

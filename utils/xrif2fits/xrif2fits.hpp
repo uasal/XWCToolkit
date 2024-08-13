@@ -25,7 +25,7 @@ using namespace mx::sys::tscomp;
 using namespace mx::sys::tsop;
 
 
-#include "../../src/libMagAOX.hpp"
+#include "../../XWC/libMagAOX.hpp"
 
 
 

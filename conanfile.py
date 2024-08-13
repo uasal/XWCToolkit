@@ -16,7 +16,7 @@ class XWCRecipe(ConanFile):
     license = "<Put the package license here>"
     author = "<Put your name here> <And your email here>"
     url = "<Package recipe repository url here, for issues about the package>"
-    description = "<Description of hello package here>"
+    description = "<Description of package here>"
     topics = ("Astronomy", "XWC", "AO", "framework")
 
     # Binary configuration

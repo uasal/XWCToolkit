@@ -12,13 +12,6 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Is there a reason for this?
-# # Ensure C++ compiler and linker are used
-# set(CMAKE_CXX_COMPILER "g++")
-
-# add_compile_definitions(_XOPEN_SOURCE=700)
-# add_compile_definitions(MX_OLD_GSL)
-
 #######################################
 ## Set default library type
 #######################################
@@ -114,7 +107,7 @@ endif()
 #######################################
 
 add_subdirectory(lib)
-add_subdirectory(src)
+add_subdirectory(XWC)
 # add_subdirectory(gui)
 add_subdirectory(utils)
 
@@ -183,3 +176,31 @@ install(
         )
 
 ##### Headers #####
+# Recursively collect all header files in the project directory
+file(GLOB_RECURSE PROJECT_HEADERS
+    ${CMAKE_SOURCE_DIR}/**/*.h
+    ${CMAKE_SOURCE_DIR}/**/*.hpp
+)
+
+# Install all collected headers, preserving the directory structure
+foreach(header ${PROJECT_HEADERS})
+    # Get the relative path of the header from the project directory
+    file(RELATIVE_PATH rel_header ${CMAKE_SOURCE_DIR} ${header})
+
+    # Get the directory path of the relative header
+    get_filename_component(header_dir ${rel_header} DIRECTORY)
+
+    # Install the header to the corresponding location in the install prefix
+    install(FILES ${header}
+            DESTINATION ${HEADER_PATH}/XWC/${header_dir})
+endforeach()
+
+# Define installation of generated headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWC/logger/generated
+        DESTINATION ${HEADER_PATH}/XWC/XWC/logger
+        FILES_MATCHING PATTERN "*.hpp" PATTERN "*.inc"
+)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWC/logger/types/generated
+        DESTINATION ${HEADER_PATH}/XWC/XWC/logger/types
+        FILES_MATCHING PATTERN "*.h"
+)

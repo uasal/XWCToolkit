@@ -18,7 +18,7 @@
 
 #include <mx/sys/timeUtils.hpp>
 
-#include "../../src/libMagAOX.hpp"
+#include "../../XWC/libMagAOX.hpp"
 
 /// Sleep for a specified period in microseconds.
 /** \todo add timeutils to libMagAOX

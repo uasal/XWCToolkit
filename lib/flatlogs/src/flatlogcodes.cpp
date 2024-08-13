@@ -168,7 +168,7 @@ int emitLogCodes( const std::string & fileName,
    
    fout << "#ifndef logger_logCodes_hpp\n";
    fout << "#define logger_logCodes_hpp\n";
-   fout << "#include <flatlogs/flatlogs.hpp>\n";
+   fout << "#include \"../../../lib/flatlogs/include/flatlogs/flatlogs.hpp\"\n";
    fout << "namespace MagAOX\n";
    fout << "{\n";
    fout << "namespace logger\n";
@@ -207,7 +207,7 @@ int emitStdFormatHeader( const std::string & fileName,
    fout << "#ifndef logger_logStdFormat_hpp\n";
    fout << "#define logger_logStdFormat_hpp\n";
 
-   fout << "#include <flatlogs/flatlogs.hpp>\n";
+   fout << "#include \"../../../lib/flatlogs/include/flatlogs/flatlogs.hpp\"\n";
 
    fout << "#include \"logTypes.hpp\"\n";
 
@@ -341,7 +341,7 @@ int emitVerifyHeader( const std::string & fileName,
    fout << "#ifndef logger_logVerify_hpp\n";
    fout << "#define logger_logVerify_hpp\n";
 
-   fout << "#include <flatlogs/flatlogs.hpp>\n";
+   fout << "#include \"../../../lib/flatlogs/include/flatlogs/flatlogs.hpp\"\n";
 
    fout << "#include \"logTypes.hpp\"\n";
 
@@ -394,7 +394,7 @@ int emitCodeValidHeader( const std::string & fileName,
    fout << "#ifndef logger_logCodeValid_hpp\n";
    fout << "#define logger_logCodeValid_hpp\n";
 
-   fout << "#include <flatlogs/flatlogs.hpp>\n";
+   fout << "#include \"../../../lib/flatlogs/include/flatlogs/flatlogs.hpp\"\n";
 
    fout << "#include \"logTypes.hpp\"\n";
 
