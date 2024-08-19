@@ -1,10 +1,3 @@
-
-###############################################
-## Function to find & add package via PkgConfig
-###############################################
-
-find_package(PkgConfig REQUIRED)
-
 ########################################
 ## Function to add compile flags
 #######################################

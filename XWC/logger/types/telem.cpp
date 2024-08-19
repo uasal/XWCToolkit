@@ -5,7 +5,7 @@
   * \ingroup logger_types_files
   * 
   */
-#include "../../lib/flatlogs/include/flatlogs/flatlogs.hpp"
+#include "../../../lib/flatlogs/include/flatlogs/flatlogs.hpp"
 #include "../generated/logTypes.hpp"
 
 namespace MagAOX

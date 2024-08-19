@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16) # 3.16 has precompiled header support
+cmake_minimum_required(VERSION 3.16)
 
 # set the project name and version
 project(XWC VERSION 1.0 LANGUAGES CXX C)
@@ -48,13 +48,14 @@ set(LIB_PATH "${PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path to the library
 set(HEADER_PATH "${PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "Path to the include directory")
 
 set(MILK_PATH "${PREFIX}/milk" CACHE PATH "Path to the milk directory")
-set(ISIO_PATH "${MILK_PATH}/${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "Path to ImageStreamIO in the milk include directory")
 set(MXLIB_PATH "${PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path to the mxlib lib directory")
 
 # Check if MAGAOX_PREFIX exists
 if(NOT EXISTS "${MAGAOX_PREFIX}")
     message(WARNING "Required directory ${MAGAOX_PREFIX} does not exist.")
 endif()
+
+set(GIT_HEADER "xwc_git_version.h" CACHE PATH "Name of required git version tracker file.")
 
 ########################################
 ## Define variables
@@ -103,6 +104,25 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/local/common.cmake")
 endif()
 
 #######################################
+## Check dependencies exist
+#######################################
+
+# set(CMAKE_FIND_DEBUG_MODE True)
+
+find_package(PkgConfig REQUIRED)
+
+set(MILK_PC_PATH "${MILK_PATH}/${CMAKE_INSTALL_LIBDIR}/cmake")
+list(APPEND CMAKE_PREFIX_PATH ${MILK_PC_PATH})
+require_isio()
+require_eigen()
+require_mxlib()
+require_flatbuffers()
+require_libudev()
+require_cfitsio()
+require_xrif()
+require_openmp()
+
+#######################################
 ## Add subfolders
 #######################################
 
@@ -135,8 +155,7 @@ set_position_independent_code_for_all_targets()
 #######################################
 
 ##### Executables #####
-install(
-        TARGETS flatlogcodes
+install(TARGETS flatlogcodes
                 indiserver 
                 getINDI 
                 setINDI 
@@ -166,12 +185,10 @@ install(
 
 
 ##### Libraries #####
-install(
-        TARGETS flatlogslib 
+install(TARGETS flatlogslib 
                 libtelnet
                 libcommon
                 liblilxml
-                XWC
         LIBRARY DESTINATION ${LIB_PATH}
         )
 
@@ -204,3 +221,41 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWC/logger/types/generated
         DESTINATION ${HEADER_PATH}/XWC/XWC/logger/types
         FILES_MATCHING PATTERN "*.h"
 )
+
+# Install git header
+install(FILES "${GIT_HEADER}" DESTINATION ${HEADER_PATH}/XWC)
+
+
+##### XWC #####
+install(TARGETS XWC
+        EXPORT XWCTargets
+        LIBRARY DESTINATION ${LIB_PATH}
+        )
+
+##### Export #####
+install(EXPORT XWCTargets
+  FILE XWCTargets.cmake
+  NAMESPACE XWC::  
+  DESTINATION ${LIB_PATH}/cmake/XWC
+)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/XWCConfigVersion.cmake"
+    VERSION "${XWC_VERSION_MAJOR}.${XWC_VERSION_MINOR}"
+    COMPATIBILITY AnyNewerVersion
+)
+
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/XWCConfig.cmake"
+  INSTALL_DESTINATION ${LIB_PATH}/cmake/XWC
+  PATH_VARS MILK_PC_PATH
+  NO_SET_AND_CHECK_MACRO
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/XWCConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/XWCConfig.cmake
+  DESTINATION ${LIB_PATH}/cmake/XWC
+  )

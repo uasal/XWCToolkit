@@ -1,17 +1,20 @@
-## Require milk ImageStreamIO headers
-require_isio()
+message(STATUS "Adding subdirectory XWC")
 
-## Require milk library
-require_milk()
-
-## Require mxlib library & headers
-require_mxlib()
-
-## Require Eigen library & include directories
-require_eigen()
-
-## Require flatbuffers
-require_flatbuffers()
+set(XWC_INCLUDE_DIR
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/app>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/app/dev>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/common>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ImageStreamIO>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/logger>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/logger/generated>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/logger/types>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modbus>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/sys>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tty>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utils>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/lib/flatlogs/include>
+    )
 
 # Source files
 set(SOURCES
@@ -38,6 +41,9 @@ set(SOURCES
 )
 
 
+## Execute flatlogcodes and generate log types
+###########################################################
+
 # Find all .fbs files required by logTypes.hpp
 file(GLOB FBS_FILES "${CMAKE_CURRENT_SOURCE_DIR}/logger/types/schemas/*.fbs")
 
@@ -60,52 +66,51 @@ add_custom_command(
 # Create a custom target for generating log types
 add_custom_target(generated_logTypes DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/logger/generated/logTypes.hpp)
 
-# Create a precompiled header target
-add_library(XWC_precompiled_header INTERFACE)
-target_precompile_headers(XWC_precompiled_header INTERFACE libMagAOX.hpp)
-target_include_directories(XWC_precompiled_header INTERFACE
-                            ${EIGEN3_INCLUDE_DIR}                            
-                            ${ISIO_PATH}                            
-                            ${MXLIB_HEADERS}
-                            ${FLATBUFFERS_HEADERS}
-                            ${CMAKE_CURRENT_SOURCE_DIR}
-                            ${CMAKE_CURRENT_SOURCE_DIR}/app
-                            ${CMAKE_CURRENT_SOURCE_DIR}/app/dev
-                            ${CMAKE_CURRENT_SOURCE_DIR}/common
-                            ${CMAKE_CURRENT_SOURCE_DIR}/ImageStreamIO
-                            ${CMAKE_CURRENT_SOURCE_DIR}/logger
-                            ${CMAKE_CURRENT_SOURCE_DIR}/logger/generated
-                            ${CMAKE_CURRENT_SOURCE_DIR}/logger/types
-                            ${CMAKE_CURRENT_SOURCE_DIR}/modbus
-                            ${CMAKE_CURRENT_SOURCE_DIR}/sys
-                            ${CMAKE_CURRENT_SOURCE_DIR}/tty
-                            ${CMAKE_CURRENT_SOURCE_DIR}/utils
-                            ${CMAKE_SOURCE_DIR}/lib/flatlogs/include                            
-                            )
 
-add_dependencies(XWC_precompiled_header generated_logTypes)
-target_compile_definitions(XWC_precompiled_header INTERFACE MXLIB_MILK)
+## Execute gengithead.sh and generate magaox_git_version.h
+###########################################################
 
-# Add the XWC library
+# Try to find gengithead.sh
+find_program(GENGITHEAD "gengithead.sh"
+    HINTS
+        /usr/local/bin
+    NO_DEFAULT_PATH
+)
+
+if(NOT GENGITHEAD)
+    message(FATAL_ERROR "The required script 'gengithead.sh' was not found on the system.")
+else()
+    message(STATUS "Found script: ${GENGITHEAD}")
+endif()
+
+# Define parameters for the scripts
+message(STATUS "Generating ${GIT_HEADER}")
+
+add_custom_command(
+    OUTPUT "${CMAKE_SOURCE_DIR}/${GIT_HEADER}"
+    COMMAND ${CMAKE_COMMAND} -E echo "Generating ${GIT_HEADER}"  
+    COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_SOURCE_DIR}" bash -c "${GENGITHEAD} ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/${GIT_HEADER} XWC"
+    COMMENT "Generated ${GIT_HEADER} header" 
+    DEPENDS ${GENGITHEAD}
+    VERBATIM
+)
+
+# Create a custom target for generating git header
+add_custom_target(githeader DEPENDS "${CMAKE_SOURCE_DIR}/${GIT_HEADER}")
+
+
+## Add the XWC library
+###########################################################
 add_library(XWC ${SOURCES})
-target_include_directories(XWC PRIVATE
-                            ${EIGEN3_INCLUDE_DIR}                                                 
+target_include_directories(XWC PUBLIC
                             ${MXLIB_HEADERS}
-                            ${CMAKE_CURRENT_SOURCE_DIR}
-                            ${CMAKE_CURRENT_SOURCE_DIR}/app
-                            ${CMAKE_CURRENT_SOURCE_DIR}/app/dev
-                            ${CMAKE_CURRENT_SOURCE_DIR}/common
-                            ${CMAKE_CURRENT_SOURCE_DIR}/ImageStreamIO
-                            ${CMAKE_CURRENT_SOURCE_DIR}/logger
-                            ${CMAKE_CURRENT_SOURCE_DIR}/logger/types
-                            ${CMAKE_CURRENT_SOURCE_DIR}/modbus
-                            ${CMAKE_CURRENT_SOURCE_DIR}/sys
-                            ${CMAKE_CURRENT_SOURCE_DIR}/tty
-                            ${CMAKE_CURRENT_SOURCE_DIR}/utils
-                            ${CMAKE_SOURCE_DIR}/lib/flatlogs/include                            
+                            ${XWC_INCLUDE_DIR}
+                            ${ImageStreamIO_INCLUDE_DIR}
                             )
-target_link_libraries(XWC PRIVATE XWC_precompiled_header 
-                                        ${MILK_LIB_FILES}
-                                        ${MXLIB}
-                                        )
-add_dependencies(XWC generated_logTypes)
+target_link_libraries(XWC PUBLIC 
+                                ImageStreamIO::ImageStreamIO
+                                Eigen3::Eigen
+                                ${MXLIB}
+                                )
+add_dependencies(XWC generated_logTypes githeader)
+target_compile_definitions(XWC PUBLIC MXLIB_MILK)

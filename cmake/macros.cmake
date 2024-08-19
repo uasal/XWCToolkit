@@ -93,25 +93,15 @@ macro(require_cfitsio)
     endif()
 endmacro()
 
-# Macro: require_isio
-# Description: This macro finds the isio library.
-macro(require_isio)
-    if(EXISTS ${ISIO_PATH})
-        message(STATUS "Milk path to ${ISIO_PATH} exists.")
-    else()
-        message(FATAL_ERROR "Please set the variable ${ISIO_PATH} to the milk path to the ImageStreamIO folder.")
-    endif()
-endmacro()
-
 # Macro: require_eigen
 # Description: This macro finds the eigen header.
 # Output variables:
 #   - EIGEN3_INCLUDE_DIR: Path to the found eigen header.
 macro(require_eigen)
     # Find the Eigen library & include directories
-    find_package(Eigen3 REQUIRED)
+    find_package(Eigen3 REQUIRED NO_MODULE)
     if(Eigen3_FOUND)
-        message(STATUS "Eigen3 headers found: ${EIGEN3_INCLUDE_DIR}")
+        message(STATUS "Eigen3 found")
     else()
         message(FATAL_ERROR "Package Eigen3 not found. Please install it.")
     endif()
@@ -135,14 +125,36 @@ endmacro()
 # Macro: require_milk
 # Description: This macro finds the milk libraries.
 # Output variables:
-#   - MILK_LIB_FILES: list of milk libraries.
-macro(require_milk)
-    if(EXISTS ${MILK_PATH}/${CMAKE_INSTALL_LIBDIR})
-        message(STATUS "Milk lib path ${MILK_PATH}/${CMAKE_INSTALL_LIBDIR} exists.")
-        # Collect all library files in the directory
-        file(GLOB MILK_LIB_FILES "${MILK_PATH}/${CMAKE_INSTALL_LIBDIR}/lib*.so")
+#   - milk:: - milk imported targets
+macro(require_milk)  
+    find_package(milk REQUIRED NO_MODULE PATHS ${MILK_PC_PATH})
+    if(milk_FOUND)
+        message(STATUS "milk library found")
     else()
-        message(FATAL_ERROR "Milk libraries not found at ${MILK_PATH}/${CMAKE_INSTALL_LIBDIR}. Please se ${MILK_PATH}.")
-    endif()
+        message(FATAL_ERROR "Package milk not found at ${MILK_PC_PATH}. Please install it here or set the MILK_PATH variable to the current location.")
+    endif()    
 endmacro()
 
+# Macro: require_isio
+# Description: This macro finds the ImageStreamIO library.
+# Output variables:
+#   - isio:: - isio imported targets
+macro(require_isio)  
+    find_package(ImageStreamIO REQUIRED NO_MODULE PATHS ${MILK_PC_PATH})
+    if(ImageStreamIO_FOUND)
+        message(STATUS "ImageStreamIO library found")
+    else()
+        message(FATAL_ERROR "Package ImageStreamIO not found at ${MILK_PC_PATH}. Please install it here or set the MILK_PATH variable to the current location.")
+    endif()    
+endmacro()
+
+## Macro: Require OpenMP
+# Description: This macro finds the OpenMP library.
+# Output variables:
+#   - OpenMP::OpenMP_CXX - OpenMP imported target
+macro(require_openmp)
+    find_package(OpenMP REQUIRED)
+    if(NOT OpenMP_CXX_FOUND)
+        message(STATUS "OpenMP package not found.Please install it.")
+    endif()
+endmacro()

@@ -1,15 +1,3 @@
-## Require milk ImageStreamIO headers
-require_isio()
-
-## Require milk library
-require_milk()
-
-## Require mxlib library & headers
-require_mxlib()
-
-## Require Eigen library & include directories
-require_eigen()
-
 ## Require instGraph library
 find_library(INGR_LIB instGraph REQUIRED)
 if (NOT INGR_LIB)
@@ -32,12 +20,10 @@ endif()
 
 add_executable(instGraph instGraph.cpp)
 target_link_libraries(instGraph PRIVATE ${INGR_LIB}
-                                        XWC_precompiled_header 
-                                        ${MILK_LIB_FILES}
+                                        ImageStreamIO::ImageStreamIO
+                                        Eigen3::Eigen
                                         ${MXLIB})
 target_include_directories(instGraph PRIVATE ${INGR_HEADERS}
-                                            ${EIGEN3_INCLUDE_DIR}                            
-                                            ${ISIO_PATH}                            
                                             ${MXLIB_HEADERS}
                                             ${CMAKE_CURRENT_SOURCE_DIR}
                                             ${CMAKE_SOURCE_DIR}/XWC
