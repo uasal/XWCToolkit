@@ -52,8 +52,8 @@ add_custom_command(
             ${CMAKE_CURRENT_SOURCE_DIR}/logger/generated/binarySchemata.inc
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/logger/types/generated    
     COMMAND ${CMAKE_COMMAND} -E echo "Executing flatlogcodes"    
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/logger
     COMMAND $<TARGET_FILE:flatlogcodes>
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/logger   
     COMMAND ${CMAKE_COMMAND} -E echo "Generating header files"    
     COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/logger/types/generated bash -c "for bfb in *.bfbs; do xxd -i \$bfb > \$(basename \$bfb).h; done"
     COMMAND ${CMAKE_COMMAND} -E echo "Generatinc .inc file"
@@ -87,30 +87,30 @@ endif()
 message(STATUS "Generating ${GIT_HEADER}")
 
 add_custom_command(
-    OUTPUT "${CMAKE_SOURCE_DIR}/${GIT_HEADER}"
+    OUTPUT "${CMAKE_BINARY_DIR}/${GIT_HEADER}"
     COMMAND ${CMAKE_COMMAND} -E echo "Generating ${GIT_HEADER}"  
-    COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_SOURCE_DIR}" bash -c "${GENGITHEAD} ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/${GIT_HEADER} XWC"
+    COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_SOURCE_DIR}" bash -c "${GENGITHEAD} ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}/${GIT_HEADER} XWC"
     COMMENT "Generated ${GIT_HEADER} header" 
     DEPENDS ${GENGITHEAD}
     VERBATIM
 )
 
 # Create a custom target for generating git header
-add_custom_target(githeader DEPENDS "${CMAKE_SOURCE_DIR}/${GIT_HEADER}")
+add_custom_target(githeader DEPENDS "${CMAKE_BINARY_DIR}/${GIT_HEADER}")
 
 
 ## Add the XWC library
 ###########################################################
 add_library(XWC ${SOURCES})
 target_include_directories(XWC PUBLIC
-                            ${MXLIB_HEADERS}
                             ${XWC_INCLUDE_DIR}
-                            ${ImageStreamIO_INCLUDE_DIR}
+                            ${LIBUDEV_INCLUDE_DIRS}
                             )
 target_link_libraries(XWC PUBLIC 
                                 ImageStreamIO::ImageStreamIO
                                 Eigen3::Eigen
                                 ${MXLIB}
+                                ${LIBUDEV_LIBRARIES}
                                 )
 add_dependencies(XWC generated_logTypes githeader)
-target_compile_definitions(XWC PUBLIC MXLIB_MILK)
+target_compile_definitions(XWC PUBLIC MXLIB_MILK MAGAOX_NOEDT)

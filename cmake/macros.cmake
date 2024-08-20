@@ -15,17 +15,6 @@ macro(require_mxlib)
     else()
         message(STATUS "Found libmxlib.so at location ${MXLIB}")
     endif()
-
-    message(STATUS "Searching for mxlib header in ${HEADER_PATH}")
-    # Check mxlib header files exist
-    find_path(MXLIB_HEADERS NAMES "mx/improc/milkImage.hpp" PATHS "${HEADER_PATH}")
-
-    # Check if the header files were found
-    if(NOT MXLIB_HEADERS)
-        message(FATAL_ERROR "Header files for mxlib not found in ${HEADER_PATH}.")
-    else()
-        message(STATUS "Header files for mxlib found at location ${MXLIB_HEADERS}.")
-    endif()
 endmacro()
 
 
@@ -138,7 +127,8 @@ endmacro()
 # Macro: require_isio
 # Description: This macro finds the ImageStreamIO library.
 # Output variables:
-#   - isio:: - isio imported targets
+#   - ImageStreamIO:: - isio imported targets
+#   - ImageStreamIO:: - isio imported targets
 macro(require_isio)  
     find_package(ImageStreamIO REQUIRED NO_MODULE PATHS ${MILK_PC_PATH})
     if(ImageStreamIO_FOUND)

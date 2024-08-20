@@ -21,27 +21,26 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(BUILD_SHARED_LIBS ON)
 
 #######################################
-## Define options
-#######################################
-
-option(NEED_CUDA "Enable CUDA support" OFF)
-option(NEED_CACAO "Enable CACAO support" OFF)
-option(MAGAOX_NOEDT "Disable EDT driver support" ON)
-
-#######################################
 ## Define common folder locations 
 ## and ensure they exist
 #######################################
 include(GNUInstallDirs) # standard module to guarantee portable project layout
 
 # Define base variables with optional default values
-set(MAGAOX_PREFIX "/opt/MagAOX" CACHE PATH "Base directory for MagAOX")
+set(MAGAOX_PREFIX "/opt/MagAOX" CACHE PATH "Base directory for MagAOX vendor packages, configs & logs")
 set(PREFIX "${CMAKE_INSTALL_PREFIX}" CACHE PATH "Default system installation path" FORCE) # CMAKE_INSTALL_PREFIX defaults to /usr/local
+
+# Check if MAGAOX_PREFIX exists
+if(NOT EXISTS "${MAGAOX_PREFIX}")
+    message(WARNING "Required directory ${MAGAOX_PREFIX} does not exist.")
+endif()
 
 # Define paths based on the base variables
 # set(BIN_PATH "${MAGAOX_PREFIX}/${CMAKE_INSTALL_BINDIR}" CACHE PATH "Path to the bin directory")
 set(DRIVER_PATH "${MAGAOX_PREFIX}/drivers" CACHE PATH "Path to the drivers directory")
 set(FIFO_PATH "${MAGAOX_PREFIX}/drivers/fifos" CACHE PATH "Path to the fifos directory")
+set(LOG_PATH "${MAGAOX_PREFIX}/logs" CACHE PATH "Path to the logs directory")
+set(CONFIG_PATH "${MAGAOX_PREFIX}/config" CACHE PATH "Path to the config directory")
 
 set(BIN_PATH "${PREFIX}/${CMAKE_INSTALL_BINDIR}" CACHE PATH "Path to the bin directory")
 set(LIB_PATH "${PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path to the library directory")
@@ -49,13 +48,16 @@ set(HEADER_PATH "${PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "Path to the 
 
 set(MILK_PATH "${PREFIX}/milk" CACHE PATH "Path to the milk directory")
 set(MXLIB_PATH "${PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path to the mxlib lib directory")
-
-# Check if MAGAOX_PREFIX exists
-if(NOT EXISTS "${MAGAOX_PREFIX}")
-    message(WARNING "Required directory ${MAGAOX_PREFIX} does not exist.")
-endif()
+set(INGR_LIB_PATH "${LIB_PATH}" CACHE PATH "Path to the location of the instGraph lib")
+set(INGR_HEADER_PATH "${HEADER_PATH}" CACHE PATH "Path to the location of the instGraph headers directory")
 
 set(GIT_HEADER "xwc_git_version.h" CACHE PATH "Name of required git version tracker file.")
+
+#######################################
+## Define options
+#######################################
+
+option(MAGAOX_NOEDT "Disable EDT driver support" ON)
 
 ########################################
 ## Define variables
@@ -63,28 +65,6 @@ set(GIT_HEADER "xwc_git_version.h" CACHE PATH "Name of required git version trac
 
 if(NOT DEFINED MXLIB_MILK)
     set(MXLIB_MILK TRUE CACHE BOOL "Enable milk (required by mxlib)")
-endif()
-
-if(NOT DEFINED EDT)
-    set(EDT FALSE CACHE BOOL "Enable EDT")
-endif()
-if(NOT DEFINED PYLON)
-    set(PYLON FALSE CACHE BOOL "Enable Pylon")
-endif()
-if(NOT DEFINED PICAM)
-    set(PICAM FALSE CACHE BOOL "Enable PiCam")
-endif()
-
-########################################
-## Define roles
-#######################################
-
-if(MAGAOX_ROLE STREQUAL "ICC")
-    set(EDT TRUE)
-    set(PYLON TRUE)
-    set(PICAM TRUE)
-elseif(MAGAOX_ROLE STREQUAL "RTC")
-    set(EDT TRUE)
 endif()
 
 #######################################
@@ -185,10 +165,12 @@ install(TARGETS flatlogcodes
 
 
 ##### Libraries #####
-install(TARGETS flatlogslib 
+install(TARGETS XWC
+                flatlogslib 
                 libtelnet
                 libcommon
                 liblilxml
+        EXPORT XWCTargets
         LIBRARY DESTINATION ${LIB_PATH}
         )
 
@@ -223,14 +205,8 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWC/logger/types/generated
 )
 
 # Install git header
-install(FILES "${GIT_HEADER}" DESTINATION ${HEADER_PATH}/XWC)
+install(FILES ${CMAKE_BINARY_DIR}/${GIT_HEADER} DESTINATION ${HEADER_PATH}/XWC)
 
-
-##### XWC #####
-install(TARGETS XWC
-        EXPORT XWCTargets
-        LIBRARY DESTINATION ${LIB_PATH}
-        )
 
 ##### Export #####
 install(EXPORT XWCTargets

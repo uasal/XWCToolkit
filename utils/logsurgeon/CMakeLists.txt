@@ -4,8 +4,7 @@ target_link_libraries(logsurgeon PRIVATE XWC
                                     libtelnet
                                     liblilxml
                                     ${LIBUDEV_LIBRARIES}
-                                    ${FLATBUFFERSLIB}
-                                    ${MXLIB})
+                                    ${FLATBUFFERSLIB})
 target_include_directories(logsurgeon PRIVATE 
                             ${FLATBUFFERS_HEADERS}
                             ${CMAKE_CURRENT_SOURCE_DIR}

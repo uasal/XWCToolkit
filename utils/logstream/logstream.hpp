@@ -18,13 +18,16 @@ using namespace MagAOX::logger;
 
 using namespace flatlogs;
 
+#ifndef LOG_PATH
+#define LOG_PATH "."
+#endif
 
 class logstream //: public mx::app::application
 {
 
 public:
    
-   std::string m_dir {"/opt/MagAOX/logs/"};
+   std::string m_dir {LOG_PATH};
    std::string m_ext {".binlog"};
       
    unsigned long m_pauseTime {1000};
