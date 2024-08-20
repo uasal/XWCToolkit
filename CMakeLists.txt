@@ -165,11 +165,13 @@ install(TARGETS flatlogcodes
 
 
 ##### Libraries #####
-install(TARGETS XWC
-                flatlogslib 
-                libtelnet
-                libcommon
-                liblilxml
+set(XWC_LIBS XWC
+            flatlogslib 
+            libtelnet
+            libcommon
+            liblilxml)
+
+install(TARGETS ${XWC_LIBS}
         EXPORT XWCTargets
         LIBRARY DESTINATION ${LIB_PATH}
         )
@@ -214,6 +216,15 @@ install(EXPORT XWCTargets
   NAMESPACE XWC::  
   DESTINATION ${LIB_PATH}/cmake/XWC
 )
+
+# Set alias for collective XWC::XWC_all target as well
+add_library(XWC_all INTERFACE)
+target_link_libraries(XWC_all INTERFACE ${XWC_LIBS})
+target_include_directories(XWC_all INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:include>
+)
+install(TARGETS XWC_all EXPORT XWCTargets)
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
