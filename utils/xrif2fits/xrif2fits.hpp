@@ -25,7 +25,7 @@ using namespace mx::sys::tscomp;
 using namespace mx::sys::tsop;
 
 
-#include "../../XWC/libMagAOX.hpp"
+#include "../../XWCTK/libXWCTk.hpp"
 
 
 
@@ -653,7 +653,7 @@ int xrif2fits::execute()
          std::string dateobs = mx::sys::ISO8601DateTimeStr(atime, 1);
          
          fh.append("DATE-OBS", dateobs, "Date of observation (UTC)");
-         fh.append("INSTRUME", "MagAO-X");
+         fh.append("INSTRUME", "XWCToolkit");
          fh.append("CAMERA", lfn.appName());
          fh.append("TELESCOP", "Magellan Clay, Las Campanas Obs.");
          
@@ -791,7 +791,7 @@ int xrif2fits::writeFloat( int n,
          std::string dateobs = mx::sys::ISO8601DateTimeStr(atime, 1);
          
          fh.append("DATE-OBS", dateobs, "Date of obs. YYYY-mm-ddTHH:MM:SS");
-         fh.append("INSTRUME", "MagAO-X " + lfn.appName());
+         fh.append("INSTRUME", "XWCToolkit " + lfn.appName());
          fh.append("TELESCOP", "Magellan Clay, Las Campanas Obs.");
                   
          if(exptime > -1)

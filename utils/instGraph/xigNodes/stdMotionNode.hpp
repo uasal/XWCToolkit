@@ -1,5 +1,5 @@
 /** \file stdMotionNode.hpp
- * \brief The MagAO-X Instrument Graph stdMotionNode header file
+ * \brief The XWCToolkit Instrument Graph stdMotionNode header file
  *
  * \ingroup instGraph_files
  */
@@ -124,7 +124,7 @@ inline void stdMotionNode::handleSetProperty( const pcf::IndiProperty &ipRecv )
     {
         m_changes = 0;
 
-        if( m_state != MagAOX::app::stateCodes::READY )
+        if( m_state != XWCTk::app::stateCodes::READY )
         {
             std::cerr << name() << ": toggling off because not READY: " << m_state << "\n";
             togglePutsOff();
@@ -144,7 +144,7 @@ inline void stdMotionNode::handleSetProperty( const pcf::IndiProperty &ipRecv )
 
 inline void stdMotionNode::togglePutsOn()
 {
-    if( m_state == MagAOX::app::stateCodes::READY )
+    if( m_state == XWCTk::app::stateCodes::READY )
     {
         if( m_presetPutName.size() == 1 ) // There's only one put, it's just on or off with a value
         {

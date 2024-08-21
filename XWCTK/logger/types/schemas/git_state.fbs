@@ -1,0 +1,13 @@
+namespace XWCTk.logger;
+
+
+
+table Git_state_fb
+{
+   repo:string;
+   sha1:string;
+   modified:ubyte;
+}
+
+root_type Git_state_fb;
+

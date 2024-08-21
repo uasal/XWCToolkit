@@ -1,5 +1,5 @@
 /** \file instGraph.hpp
- * \brief The MagAO-X Instrument Graph header file
+ * \brief The XWCToolkit Instrument Graph header file
  *
  * \ingroup instGraph_files
  */
@@ -10,7 +10,7 @@
 #include <instGraph/instGraphXML.hpp>
 using namespace ingr;
 
-#include "../../XWC/libMagAOX.hpp" //Note this is included on command line to trigger pch
+#include "../../XWCTK/libXWCTk.hpp" //Note this is included on command line to trigger pch
 
 /** \defgroup instGraph
  * \brief The XXXXXX application to do YYYYYYY
@@ -56,7 +56,7 @@ class xInstGraphIndiClient : public pcf::IndiClient
     virtual void handleDefProperty( const pcf::IndiProperty &ipRecv );
 };
 
-/// The MagAO-X xxxxxxxx
+/// The XWCToolkit xxxxxxxx
 /**
  * \ingroup instGraph
  */

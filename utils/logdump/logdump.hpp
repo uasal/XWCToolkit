@@ -1,5 +1,5 @@
 /** \file logdump.hpp
-  * \brief A simple utility to dump MagAO-X binary logs to stdout.
+  * \brief A simple utility to dump XWCToolkit binary logs to stdout.
   *
   * \ingroup logdump_files
   */
@@ -12,13 +12,13 @@
 
 #include <mx/ioutils/fileUtils.hpp>
 
-#include "../../XWC/libMagAOX.hpp"
-using namespace MagAOX::logger;
+#include "../../XWCTK/libXWCTk.hpp"
+using namespace XWCTk::logger;
 
 using namespace flatlogs;
 
-/** \defgroup logdump logdump: MagAO-X Log Reader
-  * \brief Read a MagAO-X binary log file.
+/** \defgroup logdump logdump: XWCToolkit Log Reader
+  * \brief Read a XWCToolkit binary log file.
   *
   * <a href="../handbook/utils/logdump.html">Utility Documentation</a>
   *
@@ -85,13 +85,13 @@ void logdump::setupConfig()
    config.add("pauseTime","p", "pauseTime" , argType::Required, "", "pauseTime", false,  "int", "When following, time in milliseconds to pause before checking for new entries.");
    config.add("fileCheckInterval","", "fileCheckInterval" , argType::Required, "", "fileCheckInterval", false,  "int", "When following, number of pause intervals between checks for new files.");
 
-   config.add("dir","d", "dir" , argType::Required, "", "dir", false,  "string", "Directory to search for logs. MagAO-X default is normally used.");
-   config.add("ext","e", "ext" , argType::Required, "", "ext", false,  "string", "The file extension of log files.  MagAO-X default is normally used.");
+   config.add("dir","d", "dir" , argType::Required, "", "dir", false,  "string", "Directory to search for logs. XWCToolkit default is normally used.");
+   config.add("ext","e", "ext" , argType::Required, "", "ext", false,  "string", "The file extension of log files.  XWCToolkit default is normally used.");
    config.add("nfiles","n", "nfiles" , argType::Required, "", "nfiles", false,  "int", "Number of log files to dump.  If 0, then all matching files dumped.  Default: 0, 1 if following.");
    config.add("follow","f", "follow" , argType::True, "", "follow", false,  "bool", "Follow the log, printing new entries as they appear.");
    config.add("level","L", "level" , argType::Required, "", "level", false,  "int/string", "Minimum log level to dump, either an integer or a string. -1/TELEMETRY [the default], 0/DEFAULT, 1/D1/DBG1/DEBUG2, 2/D2/DBG2/DEBUG1,3/INFO,4/WARNING,5/ERROR,6/CRITICAL,7/FATAL.  Note that only the mininum unique string is required.");
    config.add("code","C", "code" , argType::Required, "", "code", false,  "int", "The event code, or vector of codes, to dump.  If not specified, all codes are dumped.  See logCodes.hpp for a complete list of codes.");
-   config.add("file","F", "file" , argType::Required, "", "file", false,  "string", "A single file to process.  If no / are found in name it will look in the specified directory (or MagAO-X default).");
+   config.add("file","F", "file" , argType::Required, "", "file", false,  "string", "A single file to process.  If no / are found in name it will look in the specified directory (or XWCToolkit default).");
    config.add("time","T", "time" , argType::True, "", "time", false,  "bool", "time span mode: prints the ISO 8601 UTC timestamps of the first and last entry, the elapsed time in seconds, and the number of records in the file as a space-delimited string");
    config.add("json","J", "json" , argType::True, "", "json", false,  "bool", "JSON mode: emits one JSON document per line for each record in the log");
 
@@ -104,18 +104,18 @@ void logdump::loadConfig()
    config(m_fileCheckInterval, "fileCheckInterval");
 
    //Get default log dir
-   std::string tmpstr = mx::sys::getEnv(MAGAOX_env_path);
+   std::string tmpstr = mx::sys::getEnv(XWCTK_env_path);
    if(tmpstr == "")
    {
-      tmpstr = MAGAOX_path;
+      tmpstr = XWCTK_path;
    }
-   m_dir = tmpstr +  "/" + MAGAOX_logRelPath;;
+   m_dir = tmpstr +  "/" + XWCTK_logRelPath;;
 
    //Now check for config option for dir
    config(m_dir, "dir");
 
    m_ext = ".";
-   m_ext += MAGAOX_default_logExt;
+   m_ext += XWCTK_default_logExt;
    config(m_ext, "ext");
    ///\todo need to check for lack of "." and error or fix
 
@@ -356,7 +356,7 @@ void logdump::printLogBuff( const logPrioT & lvl,
 
    if(ec == eventCodes::GIT_STATE)
    {
-      if(git_state::repoName(logHeader::messageBuffer(logBuff)) == "MagAOX")
+      if(git_state::repoName(logHeader::messageBuffer(logBuff)) == "XWCTk")
       {
          for(int i=0;i<80;++i) std::cout << '-';
          std::cout << "\n\t\t\t\t SOFTWARE RESTART\n";

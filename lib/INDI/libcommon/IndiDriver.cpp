@@ -216,7 +216,7 @@ void IndiDriver::execute()
 /// at a basic level. These properties are common to all drivers.
 /// Some of these are:
 ///
-///   enable_active -> rmeoved for MagAO-X
+///   enable_active -> rmeoved for XWCToolkit
 ///
 /// Returns true (for now).
 

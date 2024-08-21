@@ -1,0 +1,13 @@
+namespace XWCTk.logger;
+
+table Telem_usage_fb
+{
+   ramUsage:float;
+   bootUsage:float;
+   rootUsage:float;
+   dataUsage:float;
+
+}
+
+root_type Telem_usage_fb;
+

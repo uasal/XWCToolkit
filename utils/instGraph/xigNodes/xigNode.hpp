@@ -1,5 +1,5 @@
 /** \file xigNode.hpp
- * \brief The base MagAO-X instGraph node header file
+ * \brief The base XWCToolkit instGraph node header file
  *
  * \ingroup instGraph_files
  */

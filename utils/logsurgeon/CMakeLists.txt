@@ -1,5 +1,5 @@
 add_executable(logsurgeon logsurgeon.cpp)
-target_link_libraries(logsurgeon PRIVATE XWC
+target_link_libraries(logsurgeon PRIVATE XWCTK
                                     libcommon
                                     libtelnet
                                     liblilxml

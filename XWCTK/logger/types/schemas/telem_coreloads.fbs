@@ -1,0 +1,9 @@
+namespace XWCTk.logger;
+
+table Telem_coreloads_fb
+{
+   loads:[float];
+}
+
+root_type Telem_coreloads_fb;
+

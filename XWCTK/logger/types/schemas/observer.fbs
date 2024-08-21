@@ -1,0 +1,15 @@
+namespace XWCTk.logger;
+
+
+
+table Observer_fb
+{
+   fullName:string;
+   pfoa:string;
+   email:string;
+   institution:string;
+
+}
+
+root_type Observer_fb;
+

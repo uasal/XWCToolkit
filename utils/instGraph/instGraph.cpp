@@ -1,5 +1,5 @@
 /** \file instGraph.cpp
-  * \brief The MagAO-X xxxxx main program source file.
+  * \brief The XWCToolkit xxxxx main program source file.
   *
   * \ingroup instGraph_files
   */

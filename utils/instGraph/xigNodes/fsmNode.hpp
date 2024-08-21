@@ -1,5 +1,5 @@
 /** \file fsmNode.hpp
- * \brief The MagAO-X Instrument Graph fsmNode header file
+ * \brief The XWCToolkit Instrument Graph fsmNode header file
  *
  * \ingroup instGraph_files
  */
@@ -16,7 +16,7 @@ class fsmNode : public xigNode
     std::string m_device;
     std::string m_fsmKey;
 
-    MagAOX::app::stateCodes::stateCodeT m_state{ -999 };
+    XWCTk::app::stateCodes::stateCodeT m_state{ -999 };
     std::string m_stateStr;
 
   public:
@@ -64,7 +64,7 @@ inline void fsmNode::handleSetProperty( const pcf::IndiProperty &ipRecv )
 
     m_stateStr = ipRecv["state"].get<std::string>();
 
-    MagAOX::app::stateCodes::stateCodeT state = MagAOX::app::stateCodes::str2CodeFast( m_stateStr );
+    XWCTk::app::stateCodes::stateCodeT state = XWCTk::app::stateCodes::str2CodeFast( m_stateStr );
 
     if( state != m_state )
     {

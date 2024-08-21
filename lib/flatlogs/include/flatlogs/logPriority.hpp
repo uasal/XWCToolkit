@@ -1,5 +1,5 @@
 /** \file logPriority.hpp
-  * \brief The MagAO-X logger log priority levels.
+  * \brief The XWCToolkit logger log priority levels.
   * \author Jared R. Males (jaredmales@gmail.com)
   *
   * \ingroup flatlogs_files

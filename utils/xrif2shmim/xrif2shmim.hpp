@@ -18,10 +18,10 @@
 
 #include <mx/sys/timeUtils.hpp>
 
-#include "../../XWC/libMagAOX.hpp"
+#include "../../XWCTK/libXWCTk.hpp"
 
 /// Sleep for a specified period in microseconds.
-/** \todo add timeutils to libMagAOX
+/** \todo add timeutils to libXWCTk
   */
 inline
 void microsleep( unsigned usec /**< [in] the number of microseconds to sleep. */)

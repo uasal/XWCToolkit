@@ -1,5 +1,5 @@
 /** \file pwrOnOffNode.hpp
- * \brief The MagAO-X Instrument Graph pwrOnOffNode header file
+ * \brief The XWCToolkit Instrument Graph pwrOnOffNode header file
  *
  * \ingroup instGraph_files
  */

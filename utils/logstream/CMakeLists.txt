@@ -1,5 +1,5 @@
 add_executable(logstream logstream.cpp)
-target_link_libraries(logstream PRIVATE XWC
+target_link_libraries(logstream PRIVATE XWCTK
                                     libcommon
                                     libtelnet
                                     liblilxml

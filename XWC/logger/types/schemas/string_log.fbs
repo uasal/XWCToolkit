@@ -1,9 +1,0 @@
-namespace MagAOX.logger;
-
-table String_log_fb
-{
-   message:string;
-}
-
-root_type String_log_fb;
-

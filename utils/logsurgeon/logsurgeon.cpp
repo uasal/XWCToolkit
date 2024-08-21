@@ -1,5 +1,5 @@
 /** \file logsurgeon.cpp
-  * \brief A simple utility to dump MagAO-X binary logs to stdout.
+  * \brief A simple utility to dump XWCToolkit binary logs to stdout.
   * 
   * \ingroup logsurgeon_files
   */

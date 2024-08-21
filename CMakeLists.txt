@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # set the project name and version
-project(XWC VERSION 1.0 LANGUAGES CXX C)
+project(XWCTK VERSION 1.0 LANGUAGES CXX C)
 
 ########################################
 ## C & C++ versions
@@ -27,20 +27,20 @@ set(BUILD_SHARED_LIBS ON)
 include(GNUInstallDirs) # standard module to guarantee portable project layout
 
 # Define base variables with optional default values
-set(MAGAOX_PREFIX "/opt/MagAOX" CACHE PATH "Base directory for MagAOX vendor packages, configs & logs")
+set(XWCTK_PREFIX "/opt/XWCTK" CACHE PATH "Base directory for XWCToolkit vendor packages, configs & logs")
 set(PREFIX "${CMAKE_INSTALL_PREFIX}" CACHE PATH "Default system installation path" FORCE) # CMAKE_INSTALL_PREFIX defaults to /usr/local
 
-# Check if MAGAOX_PREFIX exists
-if(NOT EXISTS "${MAGAOX_PREFIX}")
-    message(WARNING "Required directory ${MAGAOX_PREFIX} does not exist.")
+# Check if XWCTK_PREFIX exists
+if(NOT EXISTS "${XWCTK_PREFIX}")
+    message(WARNING "Required directory ${XWCTK_PREFIX} does not exist.")
 endif()
 
 # Define paths based on the base variables
-# set(BIN_PATH "${MAGAOX_PREFIX}/${CMAKE_INSTALL_BINDIR}" CACHE PATH "Path to the bin directory")
-set(DRIVER_PATH "${MAGAOX_PREFIX}/drivers" CACHE PATH "Path to the drivers directory")
-set(FIFO_PATH "${MAGAOX_PREFIX}/drivers/fifos" CACHE PATH "Path to the fifos directory")
-set(LOG_PATH "${MAGAOX_PREFIX}/logs" CACHE PATH "Path to the logs directory")
-set(CONFIG_PATH "${MAGAOX_PREFIX}/config" CACHE PATH "Path to the config directory")
+# set(BIN_PATH "${XWCTK_PREFIX}/${CMAKE_INSTALL_BINDIR}" CACHE PATH "Path to the bin directory")
+set(DRIVER_PATH "${XWCTK_PREFIX}/drivers" CACHE PATH "Path to the drivers directory")
+set(FIFO_PATH "${XWCTK_PREFIX}/drivers/fifos" CACHE PATH "Path to the fifos directory")
+set(LOG_PATH "${XWCTK_PREFIX}/logs" CACHE PATH "Path to the logs directory")
+set(CONFIG_PATH "${XWCTK_PREFIX}/config" CACHE PATH "Path to the config directory")
 
 set(BIN_PATH "${PREFIX}/${CMAKE_INSTALL_BINDIR}" CACHE PATH "Path to the bin directory")
 set(LIB_PATH "${PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path to the library directory")
@@ -57,7 +57,7 @@ set(GIT_HEADER "xwc_git_version.h" CACHE PATH "Name of required git version trac
 ## Define options
 #######################################
 
-option(MAGAOX_NOEDT "Disable EDT driver support" ON)
+option(XWCTK_NOEDT "Disable EDT driver support" ON)
 
 ########################################
 ## Define variables
@@ -107,7 +107,7 @@ require_openmp()
 #######################################
 
 add_subdirectory(lib)
-add_subdirectory(XWC)
+add_subdirectory(XWCTK)
 # add_subdirectory(gui)
 add_subdirectory(utils)
 
@@ -165,14 +165,14 @@ install(TARGETS flatlogcodes
 
 
 ##### Libraries #####
-set(XWC_LIBS XWC
+set(XWCTK_LIBS XWCTK
             flatlogslib 
             libtelnet
             libcommon
             liblilxml)
 
-install(TARGETS ${XWC_LIBS}
-        EXPORT XWCTargets
+install(TARGETS ${XWCTK_LIBS}
+        EXPORT XWCTKTargets
         LIBRARY DESTINATION ${LIB_PATH}
         )
 
@@ -193,56 +193,56 @@ foreach(header ${PROJECT_HEADERS})
 
     # Install the header to the corresponding location in the install prefix
     install(FILES ${header}
-            DESTINATION ${HEADER_PATH}/XWC/${header_dir})
+            DESTINATION ${HEADER_PATH}/XWCTK/${header_dir})
 endforeach()
 
 # Define installation of generated headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWC/logger/generated
-        DESTINATION ${HEADER_PATH}/XWC/XWC/logger
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWCTK/logger/generated
+        DESTINATION ${HEADER_PATH}/XWCTK/XWCTK/logger
         FILES_MATCHING PATTERN "*.hpp" PATTERN "*.inc"
 )
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWC/logger/types/generated
-        DESTINATION ${HEADER_PATH}/XWC/XWC/logger/types
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWCTK/logger/types/generated
+        DESTINATION ${HEADER_PATH}/XWCTK/XWCTK/logger/types
         FILES_MATCHING PATTERN "*.h"
 )
 
 # Install git header
-install(FILES ${CMAKE_BINARY_DIR}/${GIT_HEADER} DESTINATION ${HEADER_PATH}/XWC)
+install(FILES ${CMAKE_BINARY_DIR}/${GIT_HEADER} DESTINATION ${HEADER_PATH}/XWCTK)
 
 
 ##### Export #####
-install(EXPORT XWCTargets
-  FILE XWCTargets.cmake
-  NAMESPACE XWC::  
-  DESTINATION ${LIB_PATH}/cmake/XWC
+install(EXPORT XWCTKTargets
+  FILE XWCTKTargets.cmake
+  NAMESPACE XWCTK::  
+  DESTINATION ${LIB_PATH}/cmake/XWCTK
 )
 
-# Set alias for collective XWC::XWC_all target as well
-add_library(XWC_all INTERFACE)
-target_link_libraries(XWC_all INTERFACE ${XWC_LIBS})
-target_include_directories(XWC_all INTERFACE
+# Set alias for collective XWCTK::XWCTKall target as well
+add_library(XWCTKall INTERFACE)
+target_link_libraries(XWCTKall INTERFACE ${XWCTK_LIBS})
+target_include_directories(XWCTKall INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:include>
 )
-install(TARGETS XWC_all EXPORT XWCTargets)
+install(TARGETS XWCTKall EXPORT XWCTKTargets)
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/XWCConfigVersion.cmake"
-    VERSION "${XWC_VERSION_MAJOR}.${XWC_VERSION_MINOR}"
+    "${CMAKE_CURRENT_BINARY_DIR}/XWCTKConfigVersion.cmake"
+    VERSION "${XWCTK_VERSION_MAJOR}.${XWCTK_VERSION_MINOR}"
     COMPATIBILITY AnyNewerVersion
 )
 
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/XWCConfig.cmake"
-  INSTALL_DESTINATION ${LIB_PATH}/cmake/XWC
+  "${CMAKE_CURRENT_BINARY_DIR}/XWCTKConfig.cmake"
+  INSTALL_DESTINATION ${LIB_PATH}/cmake/XWCTK
   PATH_VARS MILK_PC_PATH
   NO_SET_AND_CHECK_MACRO
   NO_CHECK_REQUIRED_COMPONENTS_MACRO
 )
 
 install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/XWCConfig.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/XWCConfig.cmake
-  DESTINATION ${LIB_PATH}/cmake/XWC
+  ${CMAKE_CURRENT_BINARY_DIR}/XWCTKConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/XWCTKConfig.cmake
+  DESTINATION ${LIB_PATH}/cmake/XWCTK
   )

@@ -1,0 +1,56 @@
+namespace XWCTk.logger;
+
+
+table ROI
+{
+   xcen:float;
+   ycen:float;
+   w:int;
+   h:int;
+   xbin:int;
+   ybin:int;
+}
+
+table TempCtrl
+{
+   temp:float;
+   setpt:float;
+   status:bool;
+   ontarget:bool;
+   statusStr:string;
+}
+
+table Shutter
+{
+   statusStr:string;
+   state:int;
+}
+
+table Telem_stdcam_fb
+{
+   mode:string;
+   
+   roi:ROI;
+   
+   exptime:float;
+   
+   fps:float;
+   
+   emGain:float;
+   
+   adcSpeed:float;
+   
+   tempCtrl:TempCtrl;
+   
+   shutter:Shutter;
+
+   synchro:uint8;
+
+   vshift:float;
+
+   cropMode:int8 = -1;
+
+}
+
+root_type Telem_stdcam_fb;
+

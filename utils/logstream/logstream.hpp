@@ -1,5 +1,5 @@
 /** \file logstream.hpp
-  * \brief A simple utility to stream MagAO-X binary logs to stdout.
+  * \brief A simple utility to stream XWCToolkit binary logs to stdout.
   */
 
 #ifndef logstream_hpp
@@ -13,8 +13,8 @@
 
 #include <mx/ioutils/fileUtils.hpp>
 
-#include "../../XWC/libMagAOX.hpp"
-using namespace MagAOX::logger;
+#include "../../XWCTK/libXWCTk.hpp"
+using namespace XWCTk::logger;
 
 using namespace flatlogs;
 
@@ -213,7 +213,7 @@ void logstream::printLogBuff( const std::string & appName,
 
    if(ec == eventCodes::GIT_STATE)
    {
-      if(git_state::repoName(logHeader::messageBuffer(logBuff)) == "MagAOX")
+      if(git_state::repoName(logHeader::messageBuffer(logBuff)) == "XWCTk")
       {
          for(int i=0;i<80;++i) std::cout << '-';
          std::cout << "\n\t\t\t\t SOFTWARE RESTART\n";

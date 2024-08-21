@@ -1,5 +1,5 @@
 /** \file logsurgeon.hpp
-  * \brief A utility to fix corrupted MagAO-X binary logs.
+  * \brief A utility to fix corrupted XWCToolkit binary logs.
   *
   * \ingroup logsurgeon_files
   */
@@ -12,14 +12,14 @@
 
 #include <mx/ioutils/fileUtils.hpp>
 
-#include "../../XWC/libMagAOX.hpp"
-using namespace MagAOX::logger;
+#include "../../XWCTK/libXWCTk.hpp"
+using namespace XWCTk::logger;
 
 using namespace flatlogs;
 
 
-/** \defgroup logsurgeon logsurgeon: MagAO-X Log Corrector
-  * \brief Read a MagAO-X binary log file and remove corrupted bytes.
+/** \defgroup logsurgeon logsurgeon: XWCToolkit Log Corrector
+  * \brief Read a XWCToolkit binary log file and remove corrupted bytes.
   *
   * <a href="../handbook/utils/logsurgeon.html">Utility Documentation</a>
   *
@@ -53,7 +53,7 @@ public:
 
 void logsurgeon::setupConfig()
 {
-   config.add("file","F", "file" , argType::Required, "", "file", true,  "string", "The single file to process.  If no / are found in name it will look in the specified directory (or MagAO-X default).");
+   config.add("file","F", "file" , argType::Required, "", "file", true,  "string", "The single file to process.  If no / are found in name it will look in the specified directory (or XWCToolkit default).");
    config.add("check","c", "check", argType::True, "", "file", false,  "bool", "Check-only mode (no modification to files on disk, exit code 0 indicates successful verification.)");
 }
 

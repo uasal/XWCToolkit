@@ -8,7 +8,7 @@ from conan.tools.system.package_manager import Apt
 from conan.errors import ConanInvalidConfiguration
 
 
-class XWCRecipe(ConanFile):
+class XWCTKRecipe(ConanFile):
     name = "xwc"
     version = "1.0"
 
@@ -17,17 +17,17 @@ class XWCRecipe(ConanFile):
     author = "<Put your name here> <And your email here>"
     url = "<Package recipe repository url here, for issues about the package>"
     description = "<Description of package here>"
-    topics = ("Astronomy", "XWC", "AO", "framework")
+    topics = ("Astronomy", "XWCTK", "AO", "framework")
 
     # Binary configuration
     settings = "os", "compiler", "build_type", "arch"
     options = {"NEED_CUDA": [True, False],
                "NEED_CACAO": [True, False],
-               "MAGAOX_NOEDT": [True, False]}
+               "XWCTK_NOEDT": [True, False]}
 
     default_options = {"NEED_CUDA": False,
                        "NEED_CACAO": False,
-                       "MAGAOX_NOEDT": True}
+                       "XWCTK_NOEDT": True}
 
     exports_sources = "CMakeLists.txt"
 
@@ -93,4 +93,4 @@ class XWCRecipe(ConanFile):
         cmake.install()
 
     def package_info(self):
-        self.cpp_info.libs = ["XWC"]        
+        self.cpp_info.libs = ["XWCTK"]        

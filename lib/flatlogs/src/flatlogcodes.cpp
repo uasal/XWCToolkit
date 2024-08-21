@@ -169,7 +169,7 @@ int emitLogCodes( const std::string & fileName,
    fout << "#ifndef logger_logCodes_hpp\n";
    fout << "#define logger_logCodes_hpp\n";
    fout << "#include \"../../../lib/flatlogs/include/flatlogs/flatlogs.hpp\"\n";
-   fout << "namespace MagAOX\n";
+   fout << "namespace XWCTk\n";
    fout << "{\n";
    fout << "namespace logger\n";
    fout << "{\n";
@@ -212,7 +212,7 @@ int emitStdFormatHeader( const std::string & fileName,
    fout << "#include \"logTypes.hpp\"\n";
 
    ///\todo Need to allow specification of the namespaces
-   fout << "namespace MagAOX\n";
+   fout << "namespace XWCTk\n";
    fout << "{\n";
    fout << "namespace logger\n";
    fout << "{\n";
@@ -316,7 +316,7 @@ int emitStdFormatHeader( const std::string & fileName,
    fout << "}\n";
 
    fout << "}\n"; //namespace logger
-   fout << "}\n"; //namespace MagAOX
+   fout << "}\n"; //namespace XWCTk
 
    fout << "#endif\n"; //logger_logStdFormat_hpp
 
@@ -346,7 +346,7 @@ int emitVerifyHeader( const std::string & fileName,
    fout << "#include \"logTypes.hpp\"\n";
 
    ///\todo Need to allow specification of the namespaces
-   fout << "namespace MagAOX\n";
+   fout << "namespace XWCTk\n";
    fout << "{\n";
    fout << "namespace logger\n";
    fout << "{\n";
@@ -369,7 +369,7 @@ int emitVerifyHeader( const std::string & fileName,
 
 
    fout << "}\n"; //namespace logger
-   fout << "}\n"; //namespace MagAOX
+   fout << "}\n"; //namespace XWCTk
 
    fout << "#endif\n"; //logger_logVerify_hpp
 
@@ -399,7 +399,7 @@ int emitCodeValidHeader( const std::string & fileName,
    fout << "#include \"logTypes.hpp\"\n";
 
    ///\todo Need to allow specification of the namespaces
-   fout << "namespace MagAOX\n";
+   fout << "namespace XWCTk\n";
    fout << "{\n";
    fout << "namespace logger\n";
    fout << "{\n";
@@ -419,7 +419,7 @@ int emitCodeValidHeader( const std::string & fileName,
 
 
    fout << "}\n"; //namespace logger
-   fout << "}\n"; //namespace MagAOX
+   fout << "}\n"; //namespace XWCTk
 
    fout << "#endif\n"; //logger_logVerify_hpp
 

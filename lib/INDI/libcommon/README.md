@@ -9,7 +9,7 @@ At this point too many changes have been made list them all here.  Git will have
 
 ## Version History
 
-2018-05-17: The first addition of this code to the MagAO-X repo was based on the LBTI_INDI svn rep:
+2018-05-17: The first addition of this code to the XWCToolkit repo was based on the LBTI_INDI svn rep:
 ```bash
 Working Copy Root Path: /home/jrmales/Source/LBTI_INDI
 URL: http://lbti.as.arizona.edu/svn/lbti/LBTI_INDI
