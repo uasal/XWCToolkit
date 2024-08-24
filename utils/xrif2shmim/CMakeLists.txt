@@ -1,6 +1,6 @@
 
 add_executable(xrif2shmim xrif2shmim.cpp)
-target_link_libraries(xrif2shmim PRIVATE XWC
+target_link_libraries(xrif2shmim PRIVATE XWCTK
                                         libcommon
                                         libtelnet
                                         liblilxml                                        

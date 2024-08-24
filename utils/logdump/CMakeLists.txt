@@ -1,5 +1,5 @@
 add_executable(logdump logdump.cpp)
-target_link_libraries(logdump PRIVATE XWC
+target_link_libraries(logdump PRIVATE XWCTK
                                     libcommon
                                     libtelnet
                                     liblilxml

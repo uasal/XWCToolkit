@@ -807,9 +807,9 @@ void dmPokeWFS<derivedT>::wfsThreadExec()
     while(derived().m_shutdown == 0)
     {
         timespec ts;
-        XWC_SEM_WAIT_TS_RETVOID_DERIVED(ts, m_wfsSemWait_sec, m_wfsSemWait_nsec);
+        XWCTK_SEM_WAIT_TS_RETVOID_DERIVED(ts, m_wfsSemWait_sec, m_wfsSemWait_nsec);
       
-        XWC_SEM_TIMEDWAIT_LOOP_DERIVED( m_wfsSemaphore, ts )
+        XWCTK_SEM_TIMEDWAIT_LOOP_DERIVED( m_wfsSemaphore, ts )
 
         //Lock a mutex here
         if(m_single)
@@ -903,14 +903,14 @@ int dmPokeWFS<derivedT>::basicTimedPoke(float pokeSign)
     mx::sys::microSleep(m_dmSleep);
 
     //flush semaphore so we take the _next_ good image
-    XWC_SEM_FLUSH_DERIVED(m_imageSemaphore);
+    XWCTK_SEM_FLUSH_DERIVED(m_imageSemaphore);
 
     //** And wait one image to be sure we are on a whole poke**//
-    XWC_SEM_WAIT_TS_DERIVED(ts, m_imageSemWait_sec, m_imageSemWait_nsec);
+    XWCTK_SEM_WAIT_TS_DERIVED(ts, m_imageSemWait_sec, m_imageSemWait_nsec);
     bool ready = false;
     while(!ready && !(m_stopMeasurement || derived().m_shutdown))
     {
-        XWC_SEM_TIMEDWAIT_LOOP_DERIVED( m_imageSemaphore, ts )
+        XWCTK_SEM_TIMEDWAIT_LOOP_DERIVED( m_imageSemaphore, ts )
         else
         {
             ready = true;
@@ -921,8 +921,8 @@ int dmPokeWFS<derivedT>::basicTimedPoke(float pokeSign)
     while(n < m_nPokeImages && !(m_stopMeasurement || derived().m_shutdown))
     {    
         //** Now we record the poke image **//
-        XWC_SEM_WAIT_TS_DERIVED(ts, m_imageSemWait_sec, m_imageSemWait_nsec);
-        XWC_SEM_TIMEDWAIT_LOOP_DERIVED( m_imageSemaphore, ts )
+        XWCTK_SEM_WAIT_TS_DERIVED(ts, m_imageSemWait_sec, m_imageSemWait_nsec);
+        XWCTK_SEM_TIMEDWAIT_LOOP_DERIVED( m_imageSemaphore, ts )
 
         //If here, we got an image.  m_rawImage will have been updated
         m_pokeLocal +=  sign*m_rawImage();

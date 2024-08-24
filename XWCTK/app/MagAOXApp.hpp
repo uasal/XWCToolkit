@@ -1372,7 +1372,7 @@ int MagAOXApp<_useINDI>::execute() //virtual
    //----------------------------------------//
    //        Check user
    //----------------------------------------//
-   #ifndef XWC_DISABLE_USER_CHECK
+   #ifndef XWCTK_DISABLE_USER_CHECK
    struct stat logstat;
 
    if( stat(m_log.logPath().c_str(), &logstat) < 0)

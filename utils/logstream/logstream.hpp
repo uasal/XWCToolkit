@@ -13,7 +13,7 @@
 
 #include <mx/ioutils/fileUtils.hpp>
 
-#include "../../XWC/libMagAOX.hpp"
+#include "../../XWCTK/libMagAOX.hpp"
 using namespace MagAOX::logger;
 
 using namespace flatlogs;

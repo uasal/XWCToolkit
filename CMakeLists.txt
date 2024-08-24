@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # set the project name and version
-project(XWC VERSION 1.0 LANGUAGES CXX C)
+project(XWCTK VERSION 1.0 LANGUAGES CXX C)
 
 ########################################
 ## C & C++ versions
@@ -51,7 +51,7 @@ set(MXLIB_PATH "${PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path to the mxlib
 set(INGR_LIB_PATH "${LIB_PATH}" CACHE PATH "Path to the location of the instGraph lib")
 set(INGR_HEADER_PATH "${HEADER_PATH}" CACHE PATH "Path to the location of the instGraph headers directory")
 
-set(GIT_HEADER "xwc_git_version.h" CACHE PATH "Name of required git version tracker file.")
+set(GIT_HEADER "xwctk_git_version.h" CACHE PATH "Name of required git version tracker file.")
 
 #######################################
 ## Define options
@@ -106,10 +106,15 @@ require_openmp()
 ## Add subfolders
 #######################################
 
-add_subdirectory(lib)
-add_subdirectory(XWC)
-# add_subdirectory(gui)
-add_subdirectory(utils)
+set(SUBDIRECTORIES
+    lib
+    XWCTK
+    utils
+)
+
+foreach(SUBDIR ${SUBDIRECTORIES})
+    add_subdirectory(${SUBDIR})
+endforeach()
 
 #######################################
 ## Set flags
@@ -165,23 +170,29 @@ install(TARGETS flatlogcodes
 
 
 ##### Libraries #####
-set(XWC_LIBS XWC
+set(XWCTK_LIBS XWCTK
             flatlogslib 
             libtelnet
             libcommon
             liblilxml)
 
-install(TARGETS ${XWC_LIBS}
-        EXPORT XWCTargets
+install(TARGETS ${XWCTK_LIBS}
+        EXPORT XWCTKTargets
         LIBRARY DESTINATION ${LIB_PATH}
         )
 
 ##### Headers #####
 # Recursively collect all header files in the project directory
-file(GLOB_RECURSE PROJECT_HEADERS
-    ${CMAKE_SOURCE_DIR}/**/*.h
-    ${CMAKE_SOURCE_DIR}/**/*.hpp
-)
+set(PROJECT_HEADERS)
+foreach(SUBDIR ${SUBDIRECTORIES})
+    file(GLOB_RECURSE HEADERS
+        ${SUBDIR}/**/*.h
+        ${SUBDIR}/**/*.hpp
+        ${SUBDIR}/*.h
+        ${SUBDIR}/*.hpp
+    )
+    list(APPEND PROJECT_HEADERS ${HEADERS})
+endforeach()
 
 # Install all collected headers, preserving the directory structure
 foreach(header ${PROJECT_HEADERS})
@@ -193,56 +204,56 @@ foreach(header ${PROJECT_HEADERS})
 
     # Install the header to the corresponding location in the install prefix
     install(FILES ${header}
-            DESTINATION ${HEADER_PATH}/XWC/${header_dir})
+            DESTINATION ${HEADER_PATH}/${PROJECT_NAME}/${header_dir})
 endforeach()
 
 # Define installation of generated headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWC/logger/generated
-        DESTINATION ${HEADER_PATH}/XWC/XWC/logger
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWCTK/logger/generated
+        DESTINATION ${HEADER_PATH}/${PROJECT_NAME}/XWCTK/logger
         FILES_MATCHING PATTERN "*.hpp" PATTERN "*.inc"
 )
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWC/logger/types/generated
-        DESTINATION ${HEADER_PATH}/XWC/XWC/logger/types
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWCTK/logger/types/generated
+        DESTINATION ${HEADER_PATH}/${PROJECT_NAME}/XWCTK/logger/types
         FILES_MATCHING PATTERN "*.h"
 )
 
 # Install git header
-install(FILES ${CMAKE_BINARY_DIR}/${GIT_HEADER} DESTINATION ${HEADER_PATH}/XWC)
+install(FILES ${CMAKE_BINARY_DIR}/${GIT_HEADER} DESTINATION ${HEADER_PATH}/${PROJECT_NAME})
 
 
 ##### Export #####
-install(EXPORT XWCTargets
-  FILE XWCTargets.cmake
-  NAMESPACE XWC::  
-  DESTINATION ${LIB_PATH}/cmake/XWC
+install(EXPORT XWCTKTargets
+  FILE XWCTKTargets.cmake
+  NAMESPACE XWCTK::  
+  DESTINATION ${LIB_PATH}/cmake/${PROJECT_NAME}
 )
 
-# Set alias for collective XWC::XWC_all target as well
-add_library(XWC_all INTERFACE)
-target_link_libraries(XWC_all INTERFACE ${XWC_LIBS})
-target_include_directories(XWC_all INTERFACE
+# Set alias for collective XWCTK::XWCTKall target as well
+add_library(XWCTKall INTERFACE)
+target_link_libraries(XWCTKall INTERFACE ${XWCTK_LIBS})
+target_include_directories(XWCTKall INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:include>
 )
-install(TARGETS XWC_all EXPORT XWCTargets)
+install(TARGETS XWCTKall EXPORT XWCTKTargets)
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/XWCConfigVersion.cmake"
-    VERSION "${XWC_VERSION_MAJOR}.${XWC_VERSION_MINOR}"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    VERSION "${XWCTK_VERSION_MAJOR}.${XWCTK_VERSION_MINOR}"
     COMPATIBILITY AnyNewerVersion
 )
 
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/XWCConfig.cmake"
-  INSTALL_DESTINATION ${LIB_PATH}/cmake/XWC
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  INSTALL_DESTINATION ${LIB_PATH}/cmake/${PROJECT_NAME}
   PATH_VARS MILK_PC_PATH
   NO_SET_AND_CHECK_MACRO
   NO_CHECK_REQUIRED_COMPONENTS_MACRO
 )
 
 install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/XWCConfig.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/XWCConfig.cmake
-  DESTINATION ${LIB_PATH}/cmake/XWC
+  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+  DESTINATION ${LIB_PATH}/cmake/${PROJECT_NAME}
   )

@@ -10,7 +10,7 @@
 #include <instGraph/instGraphXML.hpp>
 using namespace ingr;
 
-#include "../../XWC/libMagAOX.hpp" //Note this is included on command line to trigger pch
+#include "../../XWCTK/libMagAOX.hpp" //Note this is included on command line to trigger pch
 
 /** \defgroup instGraph
  * \brief The XXXXXX application to do YYYYYYY

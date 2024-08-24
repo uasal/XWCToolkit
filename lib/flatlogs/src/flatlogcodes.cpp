@@ -8,6 +8,10 @@
   * - 2018-08-18 created by JRM
   */
 
+#ifndef FLATLOGS_PATH
+#define FLATLOGS_PATH "../../.."
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -158,7 +162,8 @@ int readCodeFile( std::map<eventCodeT, typeSchemaPair> & codeMap, ///< [out] The
 
 /// Write the logCodes.hpp header
 int emitLogCodes( const std::string & fileName,
-                  std::map<uint16_t, typeSchemaPair> & logCodes
+                  std::map<uint16_t, typeSchemaPair> & logCodes,
+                  std::string & extra_guard
                 )
 {
    typedef std::map<uint16_t, typeSchemaPair> mapT;
@@ -166,9 +171,9 @@ int emitLogCodes( const std::string & fileName,
    std::ofstream fout;
    fout.open(fileName);
    
-   fout << "#ifndef logger_logCodes_hpp\n";
-   fout << "#define logger_logCodes_hpp\n";
-   fout << "#include \"../../../lib/flatlogs/include/flatlogs/flatlogs.hpp\"\n";
+   fout << "#ifndef logger_logCodes" << extra_guard << "_hpp\n";
+   fout << "#define logger_logCodes" << extra_guard << "_hpp\n";
+   fout << "#include \"" << std::string(FLATLOGS_PATH) << "/lib/flatlogs/include/flatlogs/flatlogs.hpp\"\n";
    fout << "namespace MagAOX\n";
    fout << "{\n";
    fout << "namespace logger\n";
@@ -193,21 +198,21 @@ int emitLogCodes( const std::string & fileName,
 
 ///Write the logStdFormat.hpp header.
 int emitStdFormatHeader( const std::string & fileName,
-                         std::map<uint16_t, typeSchemaPair> & logCodes
+                         std::map<uint16_t, typeSchemaPair> & logCodes,
+                         std::string & extra_guard
                        )
 {
    typedef std::map<uint16_t, typeSchemaPair> mapT;
    
    mapT::iterator it = logCodes.begin();
-   
+
    std::ofstream fout;
    fout.open(fileName);
 
-   
-   fout << "#ifndef logger_logStdFormat_hpp\n";
-   fout << "#define logger_logStdFormat_hpp\n";
+   fout << "#ifndef logger_logStdFormat" << extra_guard << "_hpp\n";
+   fout << "#define logger_logStdFormat" << extra_guard << "_hpp\n";
 
-   fout << "#include \"../../../lib/flatlogs/include/flatlogs/flatlogs.hpp\"\n";
+   fout << "#include \"" << std::string(FLATLOGS_PATH) << "/lib/flatlogs/include/flatlogs/flatlogs.hpp\"\n";
 
    fout << "#include \"logTypes.hpp\"\n";
 
@@ -327,7 +332,8 @@ int emitStdFormatHeader( const std::string & fileName,
 
 ///Write the logVerify.hpp header.
 int emitVerifyHeader( const std::string & fileName,
-                      std::map<uint16_t, typeSchemaPair> & logCodes
+                      std::map<uint16_t, typeSchemaPair> & logCodes,
+                      std::string & extra_guard
                     )
 {
    typedef std::map<uint16_t, typeSchemaPair> mapT;
@@ -338,10 +344,10 @@ int emitVerifyHeader( const std::string & fileName,
    fout.open(fileName);
 
 
-   fout << "#ifndef logger_logVerify_hpp\n";
-   fout << "#define logger_logVerify_hpp\n";
+   fout << "#ifndef logger_logVerify" << extra_guard << "_hpp\n";
+   fout << "#define logger_logVerify" << extra_guard << "_hpp\n";
 
-   fout << "#include \"../../../lib/flatlogs/include/flatlogs/flatlogs.hpp\"\n";
+   fout << "#include \"" << std::string(FLATLOGS_PATH) << "/lib/flatlogs/include/flatlogs/flatlogs.hpp\"\n";
 
    fout << "#include \"logTypes.hpp\"\n";
 
@@ -380,7 +386,8 @@ int emitVerifyHeader( const std::string & fileName,
 
 ///Write the logVerify.hpp header.
 int emitCodeValidHeader( const std::string & fileName,
-                         std::map<uint16_t, typeSchemaPair> & logCodes
+                         std::map<uint16_t, typeSchemaPair> & logCodes,
+                         std::string & extra_guard
                        )
 {
    typedef std::map<uint16_t, typeSchemaPair> mapT;
@@ -391,10 +398,10 @@ int emitCodeValidHeader( const std::string & fileName,
    fout.open(fileName);
 
 
-   fout << "#ifndef logger_logCodeValid_hpp\n";
-   fout << "#define logger_logCodeValid_hpp\n";
+   fout << "#ifndef logger_logCodeValid" << extra_guard << "_hpp\n";
+   fout << "#define logger_logCodeValid" << extra_guard << "_hpp\n";
 
-   fout << "#include \"../../../lib/flatlogs/include/flatlogs/flatlogs.hpp\"\n";
+   fout << "#include \"" << std::string(FLATLOGS_PATH) << "/lib/flatlogs/include/flatlogs/flatlogs.hpp\"\n";
 
    fout << "#include \"logTypes.hpp\"\n";
 
@@ -430,7 +437,8 @@ int emitCodeValidHeader( const std::string & fileName,
 
 /// Write the logTypes.hpp header
 int emitLogTypes( const std::string & fileName,
-                  std::map<uint16_t, typeSchemaPair> & logCodes
+                  std::map<uint16_t, typeSchemaPair> & logCodes,
+                  std::string & extra_guard
                 )
 {
    typedef std::map<uint16_t, typeSchemaPair> mapT;
@@ -440,8 +448,8 @@ int emitLogTypes( const std::string & fileName,
    std::ofstream fout;
    fout.open(fileName);
 
-   fout << "#ifndef logger_logTypes_hpp\n";
-   fout << "#define logger_logTypes_hpp\n";
+   fout << "#ifndef logger_logTypes" << extra_guard << "_hpp\n";
+   fout << "#define logger_logTypes" << extra_guard << "_hpp\n";
    fout << "#include \"logCodes.hpp\"\n";
    for(; it!=logCodes.end(); ++it)
    {
@@ -472,7 +480,7 @@ int emitBinarySchemataDeclarations( const std::string & fileName,
 }
 
 ///\todo needs to make generated directory
-int main()
+int main(int argc, char* argv[])
 {
    typedef std::map<uint16_t, typeSchemaPair> mapT;
    typedef std::set<std::string> setT;
@@ -484,6 +492,20 @@ int main()
    
    mkdir(generatedDir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
    mkdir(schemaGeneratedDir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+   
+   std::string extra_guard = "";
+   if (argc > 1) {
+      for (int i = 1; i < argc; ++i) {
+         std::string arg = argv[i];
+         if (arg == "--extra-guard") {
+            if (i + 1 < argc) {
+               extra_guard = argv[++i];
+            } else {
+               std::cerr << "Error: --extra-guard requires a string to add to the header guard name.\n";
+            }
+         }
+      }
+   }
    
    std::string inputFile = "logCodes.dat";
    std::string stdFormatHeader = generatedDir + "/logStdFormat.hpp";
@@ -501,12 +523,12 @@ int main()
       return -1;
    }
    
-   emitStdFormatHeader(stdFormatHeader, logCodes );
-   emitVerifyHeader(verifyHeader, logCodes );
-   emitLogCodes( logCodesHeader, logCodes );
-   emitLogTypes( logTypesHeader, logCodes );
-   emitCodeValidHeader( logCodeValidHeader, logCodes);
-   emitBinarySchemataDeclarations( binarySchemataDeclarations, schemas );
+   emitStdFormatHeader(stdFormatHeader, logCodes, extra_guard);
+   emitVerifyHeader(verifyHeader, logCodes, extra_guard);
+   emitLogCodes( logCodesHeader, logCodes, extra_guard);
+   emitLogTypes( logTypesHeader, logCodes, extra_guard);
+   emitCodeValidHeader( logCodeValidHeader, logCodes, extra_guard);
+   emitBinarySchemataDeclarations( binarySchemataDeclarations, schemas);
 
    std::string flatc = "flatc -o " + schemaGeneratedDir + " --cpp --reflect-types --reflect-names";
    

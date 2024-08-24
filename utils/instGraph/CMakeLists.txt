@@ -18,7 +18,7 @@ else()
 endif()
 
 add_executable(instGraph instGraph.cpp)
-target_link_libraries(instGraph PRIVATE XWC
+target_link_libraries(instGraph PRIVATE XWCTK
                                         libcommon
                                         liblilxml
                                         libtelnet

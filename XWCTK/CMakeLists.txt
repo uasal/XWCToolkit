@@ -1,6 +1,6 @@
-message(STATUS "Adding subdirectory XWC")
+message(STATUS "Adding subdirectory XWCTK")
 
-set(XWC_INCLUDE_DIR
+set(XWCTK_INCLUDE_DIR
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/app>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/app/dev>
@@ -53,12 +53,12 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/logger/types/generated    
     COMMAND ${CMAKE_COMMAND} -E echo "Executing flatlogcodes"    
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/logger
-    COMMAND $<TARGET_FILE:flatlogcodes>
+    COMMAND $<TARGET_FILE:flatlogcodes_build>
     COMMAND ${CMAKE_COMMAND} -E echo "Generating header files"    
     COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/logger/types/generated bash -c "for bfb in *.bfbs; do xxd -i \$bfb > \$(basename \$bfb).h; done"
     COMMAND ${CMAKE_COMMAND} -E echo "Generatinc .inc file"
     COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/logger/types/generated bash -c "find . -name '*.bfbs.h' -print0 | xargs -0 cat > ${CMAKE_CURRENT_SOURCE_DIR}/logger/generated/binarySchemata.inc"
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/logger/logCodes.dat ${FBS_FILES} flatlogcodes
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/logger/logCodes.dat ${FBS_FILES} flatlogcodes_build
     COMMENT "Generating logger/generated/logTypes.hpp"
     VERBATIM
 )
@@ -89,7 +89,7 @@ message(STATUS "Generating ${GIT_HEADER}")
 add_custom_command(
     OUTPUT "${CMAKE_BINARY_DIR}/${GIT_HEADER}"
     COMMAND ${CMAKE_COMMAND} -E echo "Generating ${GIT_HEADER}"  
-    COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_SOURCE_DIR}" bash -c "${GENGITHEAD} ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}/${GIT_HEADER} XWC"
+    COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_SOURCE_DIR}" bash -c "${GENGITHEAD} ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}/${GIT_HEADER} XWCTK"
     COMMENT "Generated ${GIT_HEADER} header" 
     DEPENDS ${GENGITHEAD}
     VERBATIM
@@ -99,18 +99,18 @@ add_custom_command(
 add_custom_target(githeader DEPENDS "${CMAKE_BINARY_DIR}/${GIT_HEADER}")
 
 
-## Add the XWC library
+## Add the XWCTK library
 ###########################################################
-add_library(XWC ${SOURCES})
-target_include_directories(XWC PUBLIC
-                            ${XWC_INCLUDE_DIR}
+add_library(XWCTK ${SOURCES})
+target_include_directories(XWCTK PUBLIC
+                            ${XWCTK_INCLUDE_DIR}
                             ${LIBUDEV_INCLUDE_DIRS}
                             )
-target_link_libraries(XWC PUBLIC 
+target_link_libraries(XWCTK PUBLIC 
                                 ImageStreamIO::ImageStreamIO
                                 Eigen3::Eigen
                                 ${MXLIB}
                                 ${LIBUDEV_LIBRARIES}
                                 )
-add_dependencies(XWC generated_logTypes githeader)
-target_compile_definitions(XWC PUBLIC MXLIB_MILK MAGAOX_NOEDT)
+add_dependencies(XWCTK generated_logTypes githeader)
+target_compile_definitions(XWCTK PUBLIC MXLIB_MILK MAGAOX_NOEDT)
