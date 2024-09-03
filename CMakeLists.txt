@@ -152,6 +152,7 @@ install(TARGETS flatlogcodes
                 logsurgeon
                 xrif2fits
                 xrif2shmim
+                xindiserver
         DESTINATION ${BIN_PATH}
         )
 
@@ -174,7 +175,8 @@ set(XWCTK_LIBS XWCTK
             flatlogslib 
             libtelnet
             libcommon
-            liblilxml)
+            liblilxml
+            )
 
 install(TARGETS ${XWCTK_LIBS}
         EXPORT XWCTKTargets
