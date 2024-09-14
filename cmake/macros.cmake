@@ -129,14 +129,15 @@ endmacro()
 # Output variables:
 #   - ImageStreamIO:: - isio imported targets
 #   - ImageStreamIO:: - isio imported targets
-macro(require_isio)  
-    find_package(ImageStreamIO REQUIRED NO_MODULE PATHS ${MILK_PC_PATH})
-    if(ImageStreamIO_FOUND)
-        message(STATUS "ImageStreamIO library found")
-    else()
-        message(FATAL_ERROR "Package ImageStreamIO not found at ${MILK_PC_PATH}. Please install it here or set the MILK_PATH variable to the current location.")
-    endif()    
-endmacro()
+# macro(require_isio)  
+#     find_package(ImageStreamIO REQUIRED NO_MODULE PATHS ${MILK_PC_PATH})
+#     if(ImageStreamIO_FOUND)
+#         message(STATUS "ImageStreamIO library found")
+#         message(STATUS "ImageStreamIO target: ${ImageStreamIO_LIBRARIES}")
+#     else()
+#         message(FATAL_ERROR "Package ImageStreamIO not found at ${MILK_PC_PATH}. Please install it here or set the MILK_PATH variable to the current location.")
+#     endif()    
+# endmacro()
 
 ## Macro: Require OpenMP
 # Description: This macro finds the OpenMP library.
@@ -145,6 +146,49 @@ endmacro()
 macro(require_openmp)
     find_package(OpenMP REQUIRED)
     if(NOT OpenMP_CXX_FOUND)
-        message(STATUS "OpenMP package not found.Please install it.")
+        message(FATAL_ERROR "OpenMP package not found.Please install it.")
+    endif()
+endmacro()
+
+########################################
+## App dirs
+#######################################
+
+# Macro: process_appdirs
+# Description: This macro finds app dirs in ${APPS_PATH} and returns the paths 
+# to the corresponding dat files and schema dirs.
+# Output variables:
+#   - schemadirs - list of schema dirs
+#   - telemfiles - list of telem.cpp files
+#   - datfiles - list of datfiles
+macro(process_appdirs)
+    if(${USE_APPS_LOGSCHEMAS})
+        message(STATUS "Find paths to app log schemas, dat files and telem.cpp.")
+        
+        # Find all directories in ${APPS_PATH}
+        file(GLOB APPDIRS "${APPS_PATH}/*")
+        foreach(dirpath ${APPDIRS})
+
+            # Ignore anything starting with '.'
+            get_filename_component(dirname ${dirpath} NAME)
+            string(REGEX MATCH "^\\." is_hidden "${dirname}")
+            if(is_hidden)
+                message(STATUS "Skipping hidden directory: ${dirname}")
+                continue()
+            endif()
+
+            message(STATUS "Checking appdir ${dirpath}")
+            if(IS_DIRECTORY "${dirpath}/logger/types/schemas")
+                if(EXISTS "${dirpath}/logger/logCodes.dat")
+                    message(STATUS "Found a logger/types/schemas dir and a logCodes.dat in ${dirpath}.")
+                    list(APPEND schemadirs "${dirpath}/logger/types/schemas")
+                    list(APPEND telemfiles "${dirpath}/logger/types/telem.cpp")
+                    list(APPEND datfiles "${dirpath}/logger/logCodes.dat")
+                endif()
+            else()
+                continue()
+            endif()
+
+        endforeach()
     endif()
 endmacro()

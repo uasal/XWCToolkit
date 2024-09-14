@@ -9,4 +9,4 @@ set(@PROJECT_NAME@_VERSION "@PROJECT_VERSION@")
 
 include(CMakeFindDependencyMacro)
 find_dependency(Eigen3 REQUIRED NO_MODULE)
-find_dependency(ImageStreamIO REQUIRED PATHS "@PACKAGE_MILK_PC_PATH@")
+find_dependency(milk REQUIRED PATHS "@PACKAGE_MILK_PC_PATH@")

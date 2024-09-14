@@ -23,7 +23,7 @@ target_link_libraries(instGraph PRIVATE XWCTK
                                         liblilxml
                                         libtelnet
                                         ${INGRLIB}
-                                        ImageStreamIO::ImageStreamIO
+                                        milk::ImageStreamIO
                                         Eigen3::Eigen
                                         ${MXLIB})
 target_include_directories(instGraph PRIVATE ${INGR_HEADERS}

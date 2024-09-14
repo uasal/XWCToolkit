@@ -1,3 +1,4 @@
+.vscode/
 build/
 XWCTK/logger/generated
 XWCTK/logger/types/generated

@@ -17,7 +17,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 #######################################
 
 # Set default to build shared libraries
-# TODO!!!! Test what happens if this is off
 set(BUILD_SHARED_LIBS ON)
 
 #######################################
@@ -27,7 +26,7 @@ set(BUILD_SHARED_LIBS ON)
 include(GNUInstallDirs) # standard module to guarantee portable project layout
 
 # Define base variables with optional default values
-set(MAGAOX_PREFIX "/opt/MagAOX" CACHE PATH "Base directory for MagAOX vendor packages, configs & logs")
+set(MAGAOX_PREFIX "/opt/MagAOX" CACHE PATH "Base directory for MagAOX vendor packages, configs, drivers, apps & logs")
 set(PREFIX "${CMAKE_INSTALL_PREFIX}" CACHE PATH "Default system installation path" FORCE) # CMAKE_INSTALL_PREFIX defaults to /usr/local
 
 # Check if MAGAOX_PREFIX exists
@@ -41,12 +40,16 @@ set(DRIVER_PATH "${MAGAOX_PREFIX}/drivers" CACHE PATH "Path to the drivers direc
 set(FIFO_PATH "${MAGAOX_PREFIX}/drivers/fifos" CACHE PATH "Path to the fifos directory")
 set(LOG_PATH "${MAGAOX_PREFIX}/logs" CACHE PATH "Path to the logs directory")
 set(CONFIG_PATH "${MAGAOX_PREFIX}/config" CACHE PATH "Path to the config directory")
+set(APPS_PATH "${MAGAOX_PREFIX}/apps" CACHE PATH "Path to apps directory.")
+
+set(USE_APPS_LOGSCHEMAS_DESCRIPTION "Compile log schemas in apps dirs with the library. Assumes dir structure ${APPS_PATH}/appdir1/logger/types/schemas/ and ${APPS_PATH}/appdir1/logger/logCodes.dat")
+set(USE_APPS_LOGSCHEMAS TRUE CACHE BOOL "${USE_APPS_LOGSCHEMAS_DESCRIPTION}")
 
 set(BIN_PATH "${PREFIX}/${CMAKE_INSTALL_BINDIR}" CACHE PATH "Path to the bin directory")
 set(LIB_PATH "${PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path to the library directory")
 set(HEADER_PATH "${PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "Path to the include directory")
 
-set(MILK_PATH "${PREFIX}/milk" CACHE PATH "Path to the milk directory")
+set(MILK_PATH "${PREFIX}/milk-1.03.00" CACHE PATH "Path to the milk directory")
 set(MXLIB_PATH "${PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path to the mxlib lib directory")
 set(INGR_LIB_PATH "${LIB_PATH}" CACHE PATH "Path to the location of the instGraph lib")
 set(INGR_HEADER_PATH "${HEADER_PATH}" CACHE PATH "Path to the location of the instGraph headers directory")
@@ -58,6 +61,7 @@ set(GIT_HEADER "xwctk_git_version.h" CACHE PATH "Name of required git version tr
 #######################################
 
 option(MAGAOX_NOEDT "Disable EDT driver support" ON)
+option(XWCTK_DISABLE_USER_CHECK "Disable user check" ON)
 
 ########################################
 ## Define variables
@@ -88,12 +92,13 @@ endif()
 #######################################
 
 # set(CMAKE_FIND_DEBUG_MODE True)
+# set(CMAKE_VERBOSE_MAKEFILE ON)
 
 find_package(PkgConfig REQUIRED)
 
 set(MILK_PC_PATH "${MILK_PATH}/${CMAKE_INSTALL_LIBDIR}/cmake")
 list(APPEND CMAKE_PREFIX_PATH ${MILK_PC_PATH})
-require_isio()
+require_milk()
 require_eigen()
 require_mxlib()
 require_flatbuffers()
@@ -209,14 +214,15 @@ foreach(header ${PROJECT_HEADERS})
             DESTINATION ${HEADER_PATH}/${PROJECT_NAME}/${header_dir})
 endforeach()
 
-# Define installation of generated headers
+# Also install external app headers (only external app headers are in $CMAKE_CURRENT_BINARY_DIR)
+install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/XWCTK/logger/types/"
+        DESTINATION "${HEADER_PATH}/${PROJECT_NAME}/XWCTK/logger/types"
+        FILES_MATCHING PATTERN "*.hpp")
+
+# Define installation of generated .inc files
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWCTK/logger/generated
         DESTINATION ${HEADER_PATH}/${PROJECT_NAME}/XWCTK/logger
-        FILES_MATCHING PATTERN "*.hpp" PATTERN "*.inc"
-)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWCTK/logger/types/generated
-        DESTINATION ${HEADER_PATH}/${PROJECT_NAME}/XWCTK/logger/types
-        FILES_MATCHING PATTERN "*.h"
+        FILES_MATCHING PATTERN "*.inc"
 )
 
 # Install git header

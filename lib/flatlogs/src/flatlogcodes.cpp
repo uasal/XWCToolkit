@@ -17,6 +17,10 @@
 #include <sstream>
 #include <map>
 #include <set>
+#include <vector>
+#include <getopt.h>
+#include <filesystem>
+#include <cstring> // for strerror
 
 #include <sys/stat.h>
 
@@ -52,7 +56,18 @@ int readCodeFile( std::map<eventCodeT, typeSchemaPair> & codeMap, ///< [out] The
    
    std::fstream fin;
 
-   fin.open(fileName);
+   // Don't need to write to it, so this reduces permissions needed for the files
+   fin.open(fileName, std::ios::in);
+
+   if (!fin.is_open()) {
+      std::cerr << "Failed to open file: " << strerror(errno) << std::endl;
+
+      if (errno == EACCES) {
+         std::cerr << "Error: Insufficient permissions to open the file." << std::endl;
+      } else if (errno == ENOENT) {
+         std::cerr << "Error: File not found." << std::endl;
+      }
+   }
 
    int lineNo = 0;
    while(1)
@@ -479,35 +494,74 @@ int emitBinarySchemataDeclarations( const std::string & fileName,
    return 0;
 }
 
+void printUsage() {
+    std::cout << "Usage: flatlogcodes [options]\n";
+    std::cout << "Options:\n";
+    std::cout << "  --extraguard <string>     Specify a string to be appended to the header guard of the generated files (default: empty string)\n";
+    std::cout << "  --inputfiles <dat1>...    Specify one or more .dat files (default: logCodes.dat). The default is overriden by setting this. Path should be relative to folder where flatlogcodes is run or absolute.\n";
+    std::cout << "  --schemadirs <dir1>...    Specify one or more schemadirs for the codes in the specified .dat files (default: types/schemas). Path should be relative to folder where flatlogcodes is run or absolute.\n";
+    std::cout << "  --help                    Display this help message\n";
+}
+
 ///\todo needs to make generated directory
 int main(int argc, char* argv[])
 {
+   // Parse CLI options
+   std::string extraGuard = "";
+   std::vector<std::string> inputFiles = {"logCodes.dat"};
+   std::vector<std::string> schemaDirs = {"types/schemas"};
+
+   int opt;
+   int option_index = 0;
+
+   // Define long options
+   static struct option long_options[] = {
+      {"extraguard", optional_argument, 0, 'g'},
+      {"inputfiles", optional_argument, 0, 'i'},
+      {"schemadirs", optional_argument, 0, 's'},
+      {"help", no_argument, 0, 'h'},
+      {0, 0, 0, 0}
+   };
+
+   // Parse options
+   while ((opt = getopt_long(argc, argv, "g:i:s:h", long_options, &option_index)) != -1) {
+      switch (opt) {
+         case 'g':
+               extraGuard = optarg;
+               break;
+         case 'i':
+               inputFiles.clear(); 
+               while (optind < argc && argv[optind][0] != '-') {
+                  inputFiles.push_back(argv[optind++]);
+               }
+               break;
+         case 's':
+               schemaDirs.clear(); 
+               while (optind < argc && argv[optind][0] != '-') {
+                  schemaDirs.push_back(argv[optind++]);
+               }
+               break;
+         case 'h':  // Help argument
+               printUsage();
+               return 0;               
+         default:
+               std::cerr << "Usage: --extraguard <string> --inputfiles <dat1> <dat2> --schemadirs <dir1> <dir2>\n";
+               return 1;
+      }
+   }   
+
    typedef std::map<uint16_t, typeSchemaPair> mapT;
    typedef std::set<std::string> setT;
    
    std::string generatedDir = "generated";
-   std::string schemaDir = "types/schemas";
+   // std::string schemaDir = "types/schemas";
    
    std::string schemaGeneratedDir = "types/generated";
    
    mkdir(generatedDir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
    mkdir(schemaGeneratedDir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
    
-   std::string extra_guard = "";
-   if (argc > 1) {
-      for (int i = 1; i < argc; ++i) {
-         std::string arg = argv[i];
-         if (arg == "--extra-guard") {
-            if (i + 1 < argc) {
-               extra_guard = argv[++i];
-            } else {
-               std::cerr << "Error: --extra-guard requires a string to add to the header guard name.\n";
-            }
-         }
-      }
-   }
-   
-   std::string inputFile = "logCodes.dat";
+   // std::string inputFile = "logCodes.dat";
    std::string stdFormatHeader = generatedDir + "/logStdFormat.hpp";
    std::string verifyHeader = generatedDir + "/logVerify.hpp";
    std::string logCodesHeader = generatedDir + "/logCodes.hpp";
@@ -517,17 +571,20 @@ int main(int argc, char* argv[])
    mapT logCodes;
    setT schemas;
    
-   if( readCodeFile(logCodes, schemas, inputFile) < 0 )
+   for (auto & inputFile : inputFiles) 
    {
-      std::cerr << "Error reading code file.\n";
-      return -1;
+      if( readCodeFile(logCodes, schemas, inputFile) < 0 )
+      {
+         std::cerr << "Error reading code file " << inputFile << "." << std::endl;
+         return -1;
+      }
    }
    
-   emitStdFormatHeader(stdFormatHeader, logCodes, extra_guard);
-   emitVerifyHeader(verifyHeader, logCodes, extra_guard);
-   emitLogCodes( logCodesHeader, logCodes, extra_guard);
-   emitLogTypes( logTypesHeader, logCodes, extra_guard);
-   emitCodeValidHeader( logCodeValidHeader, logCodes, extra_guard);
+   emitStdFormatHeader(stdFormatHeader, logCodes, extraGuard);
+   emitVerifyHeader(verifyHeader, logCodes, extraGuard);
+   emitLogCodes( logCodesHeader, logCodes, extraGuard);
+   emitLogTypes( logTypesHeader, logCodes, extraGuard);
+   emitCodeValidHeader( logCodeValidHeader, logCodes, extraGuard);
    emitBinarySchemataDeclarations( binarySchemataDeclarations, schemas);
 
    std::string flatc = "flatc -o " + schemaGeneratedDir + " --cpp --reflect-types --reflect-names";
@@ -540,10 +597,27 @@ int main(int argc, char* argv[])
          ++it;
          continue;
       }
-      flatc += " " + schemaDir + "/";
-      flatc += *it;
-      flatc += ".fbs";
       
+      // Find in which schema dir each schema exists.
+      bool found = false;
+      for (auto & schemaDir : schemaDirs)
+      {
+         std::string schemaPath = "";         
+         schemaPath += schemaDir + "/";
+         schemaPath += *it;
+         schemaPath += ".fbs";
+
+         if (std::filesystem::exists(schemaPath)) {
+            flatc += " " + schemaPath;
+            found = true;
+            continue;
+         }
+      }
+      
+      if (!found) {
+         std::cerr << "Schema " << *it << " not found\n";
+      }
+
       ++it;
    }
 
@@ -562,9 +636,26 @@ int main(int argc, char* argv[])
          ++it;
          continue;
       }
-      flatc += " " + schemaDir + "/";
-      flatc += *it;
-      flatc += ".fbs";
+      
+      // Find in which schema dir each schema exists.
+      bool found = false;
+      for (auto & schemaDir : schemaDirs)
+      {
+         std::string schemaPath = "";
+         schemaPath += schemaDir + "/";
+         schemaPath += *it;
+         schemaPath += ".fbs";
+
+         if (std::filesystem::exists(schemaPath)) {
+            flatc += " " + schemaPath;
+            found = true;
+            continue;
+         }
+      }
+      
+      if (!found) {
+         std::cerr << "Schema " << *it << " not found\n";
+      }
 
       ++it;
    }

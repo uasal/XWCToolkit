@@ -17,8 +17,8 @@
 
 #include <mx/ioutils/fileUtils.hpp>
 
-#include <XWCTK/XWCTK/libMagAOX.hpp>
-#include <XWCTK/xwctk_git_version.h>
+#include "../../XWCTK/libMagAOX.hpp"
+#include "../../xwctk_git_version.h"
 
 /** \defgroup xindiserver INDI Server wrapper.
   * \brief Manages INDI server in the MagAO-X context.
