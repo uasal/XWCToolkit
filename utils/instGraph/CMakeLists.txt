@@ -19,9 +19,9 @@ endif()
 
 add_executable(instGraph instGraph.cpp)
 target_link_libraries(instGraph PRIVATE XWCTK
-                                        libcommon
-                                        liblilxml
-                                        libtelnet
+                                        common
+                                        lilxml
+                                        telnet
                                         ${INGRLIB}
                                         milk::ImageStreamIO
                                         Eigen3::Eigen

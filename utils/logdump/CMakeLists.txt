@@ -1,8 +1,8 @@
 add_executable(logdump logdump.cpp)
 target_link_libraries(logdump PRIVATE XWCTK
-                                    libcommon
-                                    libtelnet
-                                    liblilxml
+                                    common
+                                    telnet
+                                    lilxml
                                     ${LIBUDEV_LIBRARIES}
                                     ${FLATBUFFERSLIB})
 target_include_directories(logdump PRIVATE 

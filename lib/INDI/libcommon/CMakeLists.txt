@@ -1,5 +1,5 @@
 # Create the library
-add_library(libcommon Cmd.cpp
+add_library(common Cmd.cpp
                     IndiConnection.cpp
                     IndiClient.cpp
                     IndiDriver.cpp
@@ -13,4 +13,4 @@ add_library(libcommon Cmd.cpp
                     Thread.cpp
                     TimeStamp.cpp)
 
-target_include_directories(libcommon PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(common PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

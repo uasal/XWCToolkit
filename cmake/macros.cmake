@@ -155,7 +155,7 @@ endmacro()
 #######################################
 
 # Macro: process_appdirs
-# Description: This macro finds app dirs in ${APPS_PATH} and returns the paths 
+# Description: This macro finds app dirs in ${XWCTK_APPS_PATH} and returns the paths 
 # to the corresponding dat files and schema dirs.
 # Output variables:
 #   - schemadirs - list of schema dirs
@@ -165,8 +165,8 @@ macro(process_appdirs)
     if(${USE_APPS_LOGSCHEMAS})
         message(STATUS "Find paths to app log schemas, dat files and telem.cpp.")
         
-        # Find all directories in ${APPS_PATH}
-        file(GLOB APPDIRS "${APPS_PATH}/*")
+        # Find all directories in ${XWCTK_APPS_PATH}
+        file(GLOB APPDIRS "${XWCTK_APPS_PATH}/*")
         foreach(dirpath ${APPDIRS})
 
             # Ignore anything starting with '.'

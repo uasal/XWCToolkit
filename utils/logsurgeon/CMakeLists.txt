@@ -1,8 +1,8 @@
 add_executable(logsurgeon logsurgeon.cpp)
 target_link_libraries(logsurgeon PRIVATE XWCTK
-                                    libcommon
-                                    libtelnet
-                                    liblilxml
+                                    common
+                                    telnet
+                                    lilxml
                                     ${LIBUDEV_LIBRARIES}
                                     ${FLATBUFFERSLIB})
 target_include_directories(logsurgeon PRIVATE 

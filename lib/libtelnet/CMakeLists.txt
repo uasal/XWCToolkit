@@ -1,4 +1,4 @@
 # Create the shared library
-add_library(libtelnet libtelnet.c)
+add_library(telnet libtelnet.c)
 
-target_include_directories(libtelnet PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(telnet PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

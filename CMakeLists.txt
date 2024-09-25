@@ -26,33 +26,33 @@ set(BUILD_SHARED_LIBS ON)
 include(GNUInstallDirs) # standard module to guarantee portable project layout
 
 # Define base variables with optional default values
-set(MAGAOX_PREFIX "/opt/MagAOX" CACHE PATH "Base directory for MagAOX vendor packages, configs, drivers, apps & logs")
+set(XWCTK_PREFIX "/opt/MagAOX" CACHE PATH "Base directory for MagAOX vendor, packages, configs, drivers, apps & logs")
 set(PREFIX "${CMAKE_INSTALL_PREFIX}" CACHE PATH "Default system installation path" FORCE) # CMAKE_INSTALL_PREFIX defaults to /usr/local
 
-# Check if MAGAOX_PREFIX exists
-if(NOT EXISTS "${MAGAOX_PREFIX}")
-    message(WARNING "Required directory ${MAGAOX_PREFIX} does not exist.")
+# Check if XWCTK_PREFIX exists
+if(NOT EXISTS "${XWCTK_PREFIX}")
+    message(WARNING "Required directory ${XWCTK_PREFIX} does not exist.")
 endif()
 
 # Define paths based on the base variables
-# set(BIN_PATH "${MAGAOX_PREFIX}/${CMAKE_INSTALL_BINDIR}" CACHE PATH "Path to the bin directory")
-set(DRIVER_PATH "${MAGAOX_PREFIX}/drivers" CACHE PATH "Path to the drivers directory")
-set(FIFO_PATH "${MAGAOX_PREFIX}/drivers/fifos" CACHE PATH "Path to the fifos directory")
-set(LOG_PATH "${MAGAOX_PREFIX}/logs" CACHE PATH "Path to the logs directory")
-set(CONFIG_PATH "${MAGAOX_PREFIX}/config" CACHE PATH "Path to the config directory")
-set(APPS_PATH "${MAGAOX_PREFIX}/apps" CACHE PATH "Path to apps directory.")
+# set(BIN_PATH "${XWCTK_PREFIX}/${CMAKE_INSTALL_BINDIR}" CACHE PATH "Path to the bin directory")
+set(XWCTK_DRIVER_PATH "${XWCTK_PREFIX}/drivers") # "Path to the drivers directory"
+set(XWCTK_FIFO_PATH "${XWCTK_PREFIX}/drivers/fifos") # "Path to the fifos directory"
+set(XWCTK_LOG_PATH "${XWCTK_PREFIX}/logs") # "Path to the logs directory"
+set(XWCTK_CONFIG_PATH "${XWCTK_PREFIX}/config") #"Path to the config directory"
+set(XWCTK_APPS_PATH "${XWCTK_PREFIX}/apps" CACHE PATH "Path to apps directory")
 
-set(USE_APPS_LOGSCHEMAS_DESCRIPTION "Compile log schemas in apps dirs with the library. Assumes dir structure ${APPS_PATH}/appdir1/logger/types/schemas/ and ${APPS_PATH}/appdir1/logger/logCodes.dat")
+set(USE_APPS_LOGSCHEMAS_DESCRIPTION "Compile log schemas in apps dirs with the library. Assumes dir structure ${XWCTK_APPS_PATH}/appdir1/logger/types/schemas/ and ${XWCTK_APPS_PATH}/appdir1/logger/logCodes.dat")
 set(USE_APPS_LOGSCHEMAS TRUE CACHE BOOL "${USE_APPS_LOGSCHEMAS_DESCRIPTION}")
 
-set(BIN_PATH "${PREFIX}/${CMAKE_INSTALL_BINDIR}" CACHE PATH "Path to the bin directory")
-set(LIB_PATH "${PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path to the library directory")
-set(HEADER_PATH "${PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "Path to the include directory")
+set(BIN_PATH "${PREFIX}/${CMAKE_INSTALL_BINDIR}") # "Path to the bin directory"
+set(LIB_PATH "${PREFIX}/${CMAKE_INSTALL_LIBDIR}") # "Path to the library directory"
+set(HEADER_PATH "${PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}") # "Path to the include directory"
 
 set(MILK_PATH "${PREFIX}/milk-1.03.00" CACHE PATH "Path to the milk directory")
-set(MXLIB_PATH "${PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path to the mxlib lib directory")
-set(INGR_LIB_PATH "${LIB_PATH}" CACHE PATH "Path to the location of the instGraph lib")
-set(INGR_HEADER_PATH "${HEADER_PATH}" CACHE PATH "Path to the location of the instGraph headers directory")
+set(MXLIB_PATH "${LIB_PATH}" CACHE PATH "Path to the mxlib lib directory")
+set(INGR_LIB_PATH "${LIB_PATH}" CACHE PATH "Path to the instGraph lib")
+set(INGR_HEADER_PATH "${HEADER_PATH}" CACHE PATH "Path to the instGraph headers directory")
 
 set(GIT_HEADER "xwctk_git_version.h" CACHE PATH "Name of required git version tracker file.")
 
@@ -61,6 +61,7 @@ set(GIT_HEADER "xwctk_git_version.h" CACHE PATH "Name of required git version tr
 #######################################
 
 option(MAGAOX_NOEDT "Disable EDT driver support" ON)
+option(NOINSTGRAPH "Disable instGraph support" ON)
 option(XWCTK_DISABLE_USER_CHECK "Disable user check" ON)
 
 ########################################
@@ -161,6 +162,13 @@ install(TARGETS flatlogcodes
         DESTINATION ${BIN_PATH}
         )
 
+# Check instgraph flag
+if(NOT NOINSTGRAPH)
+    install(TARGETS instGraph
+    DESTINATION ${BIN_PATH}
+    )
+endif()
+
 # # Symbolic link
 # # If $BIN_PATH is different to ${PREFIX}/${CMAKE_INSTALL_BINDIR}
 # # Normalize the paths to absolute paths
@@ -178,9 +186,9 @@ install(TARGETS flatlogcodes
 ##### Libraries #####
 set(XWCTK_LIBS XWCTK
             flatlogslib 
-            libtelnet
-            libcommon
-            liblilxml
+            telnet
+            common
+            lilxml
             )
 
 install(TARGETS ${XWCTK_LIBS}

@@ -5,7 +5,7 @@ add_executable(indiserver indiserver.c fq.c)
 target_include_directories(indiserver PRIVATE 
                             ${CMAKE_CURRENT_SOURCE_DIR}/../liblilxml)
 # Link library
-target_link_libraries(indiserver PRIVATE liblilxml)
+target_link_libraries(indiserver PRIVATE lilxml)
 # Link pthread
 find_package(Threads REQUIRED)
 if(NOT Threads_FOUND)
@@ -21,7 +21,7 @@ add_executable(getINDI getINDI.c connect_to.c indiapi.h)
 target_include_directories(getINDI PRIVATE 
                             ${CMAKE_CURRENT_SOURCE_DIR}/../liblilxml)
 # Link library
-target_link_libraries(getINDI PRIVATE liblilxml)
+target_link_libraries(getINDI PRIVATE lilxml)
 # Link zlib
 find_package(ZLIB REQUIRED)
 if(NOT ZLIB_FOUND)
@@ -37,7 +37,7 @@ add_executable(setINDI setINDI.c indiapi.h connect_to.c)
 target_include_directories(setINDI PRIVATE 
                             ${CMAKE_CURRENT_SOURCE_DIR}/../liblilxml)
 # Link library
-target_link_libraries(setINDI PRIVATE liblilxml)
+target_link_libraries(setINDI PRIVATE lilxml)
 
                     
 # evalINDI
@@ -47,6 +47,6 @@ add_executable(evalINDI evalINDI.c connect_to.c compiler.c)
 target_include_directories(evalINDI PRIVATE 
                             ${CMAKE_CURRENT_SOURCE_DIR}/../liblilxml)
 # Link library
-target_link_libraries(evalINDI PRIVATE liblilxml)
+target_link_libraries(evalINDI PRIVATE lilxml)
 # Link libm
 target_link_libraries(evalINDI PRIVATE m)

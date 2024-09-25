@@ -108,7 +108,7 @@ set(HEADER_FILES
 # Find all .fbs files required by logTypes.hpp
 file(GLOB FBS_FILES "${CMAKE_CURRENT_SOURCE_DIR}/logger/types/schemas/*.fbs")
 
-# If app directories exist at APPS_PATH, get the paths to their corresponding dat files and schema dirs
+# If app directories exist at XWCTK_APPS_PATH, get the paths to their corresponding dat files and schema dirs
 process_appdirs()
 
 # If schema dirs founds, copy headers to equivalent path in build dir
@@ -222,6 +222,7 @@ target_link_libraries(XWCTK PUBLIC -Wl,--no-as-needed
 add_dependencies(XWCTK generated_logTypes githeader copy_app_headers)
 
 target_compile_definitions(XWCTK PUBLIC MXLIB_MILK MAGAOX_NOEDT)
+target_compile_definitions(XWCTK PUBLIC MAGAOX_path="${XWCTK_PREFIX}")
 
 if (XWCTK_DISABLE_USER_CHECK)
     message(STATUS "Disabling user check")

@@ -1,8 +1,8 @@
 add_executable(xrif2fits xrif2fits.cpp)
 target_link_libraries(xrif2fits PRIVATE XWCTK
-                                        libcommon
-                                        libtelnet
-                                        liblilxml                                        
+                                        common
+                                        telnet
+                                        lilxml                                        
                                         ${CFITSIO_LIB}
                                         ${XRIFLIB}
                                         ${LIBUDEV_LIBRARIES}
