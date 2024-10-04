@@ -86,11 +86,6 @@ set(HEADER_FILES
     logger/logMap.hpp
     logger/logMeta.hpp
     logger/logBinarySchemata.hpp
-    logger/generated/logCodes.hpp
-    logger/generated/logStdFormat.hpp
-    logger/generated/logVerify.hpp
-    logger/generated/logTypes.hpp
-    logger/generated/logCodeValid.hpp
     tty/ttyErrors.hpp
     tty/ttyIOUtils.hpp
     tty/ttyUSB.hpp
@@ -156,6 +151,10 @@ list(APPEND schemadirs "types/schemas")
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/logger/generated/logTypes.hpp
             ${CMAKE_CURRENT_SOURCE_DIR}/logger/generated/binarySchemata.inc
+            ${CMAKE_CURRENT_SOURCE_DIR}/logger/generated/logCodes.hpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/logger/generated/logStdFormat.hpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/logger/generated/logVerify.hpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/logger/generated/logCodeValid.hpp
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/logger/types/generated    
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/logger
     COMMAND ${CMAKE_COMMAND} -E echo "Executing flatlogcodes with inputfiles '${datfiles}' and schemadirs '${schemadirs}'"    
@@ -207,7 +206,14 @@ add_custom_target(githeader DEPENDS "${CMAKE_BINARY_DIR}/${GIT_HEADER}")
 
 ## Add the XWCTK library
 ###########################################################
-add_library(XWCTK ${SOURCES} ${HEADER_FILES})
+add_library(XWCTK ${SOURCES} 
+                    ${HEADER_FILES}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/logger/generated/logCodes.hpp
+                    ${CMAKE_CURRENT_SOURCE_DIR}/logger/generated/logStdFormat.hpp
+                    ${CMAKE_CURRENT_SOURCE_DIR}/logger/generated/logVerify.hpp
+                    ${CMAKE_CURRENT_SOURCE_DIR}/logger/generated/logTypes.hpp
+                    ${CMAKE_CURRENT_SOURCE_DIR}/logger/generated/logCodeValid.hpp
+                    )
 target_include_directories(XWCTK PUBLIC
                             ${XWCTK_INCLUDE_DIR}
                             ${LIBUDEV_INCLUDE_DIRS}
