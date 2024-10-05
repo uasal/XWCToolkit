@@ -228,14 +228,14 @@ install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/XWCTK/logger/types/"
         FILES_MATCHING PATTERN "*.hpp")
 
 # Define installation of generated headers & .inc files
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWC/logger/generated
-    DESTINATION ${HEADER_PATH}/XWC/XWC/logger
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWCTK/logger/generated
+    DESTINATION ${HEADER_PATH}/XWCTK/XWCTK/logger
     FILES_MATCHING PATTERN "*.hpp" PATTERN "*.inc"
 )
 
 # If not explicitly installed, app logger headers don't get installed
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWC/logger/types/generated
-    DESTINATION ${HEADER_PATH}/XWC/XWC/logger/types
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWCTK/logger/types/generated
+    DESTINATION ${HEADER_PATH}/XWCTK/XWCTK/logger/types
     FILES_MATCHING PATTERN "*.h"
 )
 
