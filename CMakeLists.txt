@@ -99,7 +99,7 @@ find_package(PkgConfig REQUIRED)
 
 set(MILK_PC_PATH "${MILK_PATH}/${CMAKE_INSTALL_LIBDIR}/cmake")
 list(APPEND CMAKE_PREFIX_PATH ${MILK_PC_PATH})
-require_isio()
+require_milk()
 require_eigen()
 require_mxlib()
 require_flatbuffers()
