@@ -99,7 +99,7 @@ find_package(PkgConfig REQUIRED)
 
 set(MILK_PC_PATH "${MILK_PATH}/${CMAKE_INSTALL_LIBDIR}/cmake")
 list(APPEND CMAKE_PREFIX_PATH ${MILK_PC_PATH})
-require_milk()
+require_isio()
 require_eigen()
 require_mxlib()
 require_flatbuffers()
@@ -227,10 +227,16 @@ install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/XWCTK/logger/types/"
         DESTINATION "${HEADER_PATH}/${PROJECT_NAME}/XWCTK/logger/types"
         FILES_MATCHING PATTERN "*.hpp")
 
-# Define installation of generated .inc files
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWCTK/logger/generated
-        DESTINATION ${HEADER_PATH}/${PROJECT_NAME}/XWCTK/logger
-        FILES_MATCHING PATTERN "*.inc"
+# Define installation of generated headers & .inc files
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWC/logger/generated
+    DESTINATION ${HEADER_PATH}/XWC/XWC/logger
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.inc"
+)
+
+# If not explicitly installed, app logger headers don't get installed
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/XWC/logger/types/generated
+    DESTINATION ${HEADER_PATH}/XWC/XWC/logger/types
+    FILES_MATCHING PATTERN "*.h"
 )
 
 # Install git header
