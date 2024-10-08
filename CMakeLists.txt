@@ -49,7 +49,7 @@ set(BIN_PATH "${PREFIX}/${CMAKE_INSTALL_BINDIR}") # "Path to the bin directory"
 set(LIB_PATH "${PREFIX}/${CMAKE_INSTALL_LIBDIR}") # "Path to the library directory"
 set(HEADER_PATH "${PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}") # "Path to the include directory"
 
-set(MILK_PATH "${PREFIX}/milk-1.03.00" CACHE PATH "Path to the milk directory")
+set(MILK_PATH "${PREFIX}/milk" CACHE PATH "Path to the milk directory")
 set(MXLIB_PATH "${LIB_PATH}" CACHE PATH "Path to the mxlib lib directory")
 set(INGR_LIB_PATH "${LIB_PATH}" CACHE PATH "Path to the instGraph lib")
 set(INGR_HEADER_PATH "${HEADER_PATH}" CACHE PATH "Path to the instGraph headers directory")
