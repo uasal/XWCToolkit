@@ -158,8 +158,16 @@ install(TARGETS flatlogcodes
                 logsurgeon
                 xrif2fits
                 xrif2shmim
-                xindiserver
         DESTINATION ${BIN_PATH}
+        )
+
+##### Executables with setuid #####
+install(TARGETS xindiserver
+        DESTINATION ${BIN_PATH}
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                    GROUP_READ GROUP_EXECUTE
+                    WORLD_READ WORLD_EXECUTE
+                    SETUID
         )
 
 # Check instgraph flag
