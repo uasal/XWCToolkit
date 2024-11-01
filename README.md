@@ -4,6 +4,11 @@ This is the core library extracted from [MagAOX](https://github.com/magao-x/MagA
 
 ## 1. Dependencies
 
+#### 1.1 Provisioning host
+
+The [XWCTk provisioning playbook](https://github.com/uasal/XWCTk_provisioning_playbook) can be used to automatically install dependencies and build the directory and permission structure required to run XWCToolkit. The playbook provisions the target host and then installs the XWCToolkit & the [ESCapps](https://github.com/uasal/ESCapps/) repository. The playbook requires [Ansible](https://docs.ansible.com/ansible/latest/getting_started/introduction.html), but Ansible does not need to be installed on the target host, just on the machine running the playbook.
+
+#### 1.2 List of dependencies
 1. milk & ImageStreamIO (https://github.com/milk-org/milk)
 2. mxlib (https://github.com/jaredmales/mxlib).
    The flag `MXLIB_MILK` needs to be passed to enable `milk` for `mxlib` (accounted for in CMakeLists.txt)
@@ -79,28 +84,28 @@ The following options are avialable on build. They do not need to be set, but ca
 ## 3. Building
 
 The system builds and installs:
-    - the core `XWCTK` header-only library, 
+- the core `XWCTK` header-only library, 
 as well as dependecy libraries:
-    - `flatlogslib` (based on `flatbuffers`),
-    - `libtelnet` (elnet protocol allowing for programmatic access to a telnet server),
-    - `libcommon` (LBTI INDI application framework), and
-    - `liblilxml` (LBTI library to handle parsing and processing an XML file)
+- `flatlogslib` (based on `flatbuffers`),
+- `libtelnet` (elnet protocol allowing for programmatic access to a telnet server),
+- `libcommon` (LBTI INDI application framework), and
+- `liblilxml` (LBTI library to handle parsing and processing an XML file)
 
 The system also builds and installs the following executables:
-    - `flatlogcodes` (program to parse a log type to a code file)
-    - `indiserver` (TCP server that provides network access to any number of local INDI Driver programs or INDI Devices running on other indiservers in a chained fashion; see man page for details)
-    - `getINDI` (connects to an indiserver and reports the current value of one or more properties; see man page for details)
-    - `setINDI` (connects to an indiserver and sends commands to set new values for specified properties; see man page for details)
-    - `evalINDI` (connects to an indiserver and listens for the values of properties to evaluate an arithmetic expression; see man page for details)
-    - `xindidriver` (acts as the INDI driver for indiserver, but pass the STDIN and STDOUT to/from FIFOs exposed by a device controller with INDI driver functionality)
-    - `cursesINDI` (utility for curses-type INDI parameter control)
-    - `instGraph` (utility for mapping the path of light across the instrument)
-    - `logdump` (utility to dump MagAO-X binary logs to stdout)
-    - `logstream` (utility to stream MagAO-X binary logs to stdout)
-    - `logsurgeon` (utility to fix corrupted MagAO-X binary logs)
-    - `xrif2fits` (utility to read images from an xrif archive and write to FITS)
-    - `xrif2shmim` (utility to stream images from an xrif archive to shared memory)
-    - `xindiserver` (XWCTk app that wraps INDI Server)
+- `flatlogcodes` (program to parse a log type to a code file)
+- `indiserver` (TCP server that provides network access to any number of local INDI Driver programs or INDI Devices running on other indiservers in a chained fashion; see man page for details)
+- `getINDI` (connects to an indiserver and reports the current value of one or more properties; see man page for details)
+- `setINDI` (connects to an indiserver and sends commands to set new values for specified properties; see man page for details)
+- `evalINDI` (connects to an indiserver and listens for the values of properties to evaluate an arithmetic expression; see man page for details)
+- `xindidriver` (acts as the INDI driver for indiserver, but pass the STDIN and STDOUT to/from FIFOs exposed by a device controller with INDI driver functionality)
+- `cursesINDI` (utility for curses-type INDI parameter control)
+- `instGraph` (utility for mapping the path of light across the instrument)
+- `logdump` (utility to dump MagAO-X binary logs to stdout)
+- `logstream` (utility to stream MagAO-X binary logs to stdout)
+- `logsurgeon` (utility to fix corrupted MagAO-X binary logs)
+- `xrif2fits` (utility to read images from an xrif archive and write to FITS)
+- `xrif2shmim` (utility to stream images from an xrif archive to shared memory)
+- `xindiserver` (XWCTk app that wraps INDI Server)
 
 Note the difference between the `apps` and `utils` components, is that upon install MagAO-X Applications get setuid, whereas the utilities do not.
 
@@ -147,4 +152,3 @@ To-do items are listed in the above sections.  Also see the Todo page in the dox
 
 - [] split base INDI off into separate repo, which will be the minimum someone needs to have INDI utils for interacting with MagAO-X without installing the whole tree.
 - [] create indiserver startup script which takes a list of drivers from a config file, creates symlinks to xindidriver as needed, and then starts indiserver itself.
-- [] start issue tracking
