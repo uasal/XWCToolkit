@@ -1,0 +1,206 @@
+#!/usr/bin/env python
+import sys
+import os
+import pathlib
+import shutil
+import datetime
+import logging
+from datetime import timezone
+from pwd import getpwnam
+from grp import getgrnam
+
+run_ts = datetime.datetime.now().replace(tzinfo=timezone.utc).strftime("%Y-%m-%dT%H%M%S")
+outfile = f'organize_xfiles_{run_ts}.log'
+log = logging.getLogger('organize_xfiles')
+fmt = logging.Formatter('%(asctime)s %(levelname)-8s %(name)-15s %(message)s')
+stderr_stream = logging.StreamHandler()
+stderr_stream.setFormatter(fmt)
+log_to_file = logging.FileHandler(outfile)
+log_to_file.setFormatter(fmt)
+log.addHandler(stderr_stream)
+log.addHandler(log_to_file)
+log.setLevel(logging.DEBUG)
+log.debug(f"Logging to {outfile}")
+
+_, EFFECTIVE_UID, _ = os.getresuid()
+XSUP_UID = getpwnam('xsup').pw_uid
+MAGAOX_GID = getgrnam('magaox').gr_gid
+
+root = pathlib.Path(os.environ.get('MAGAOX_ROOT', '/opt/MagAOX'))
+
+from collections import namedtuple
+XFile = namedtuple('XFile', ['filename', 'devname', 'year', 'month', 'day', 'hour', 'mins', 'sec', 'nanos'])
+
+def parse_xname(name):
+    basename, ext = name.split('.', 1)
+    devname, timestamp = basename.rsplit('_', 1)
+    try:
+        # 20250725201144577396000
+        # YYYYMMDDHHmmSSnnnnnnnnn
+        year, rest = int(timestamp[:4]), timestamp[4:]
+        month, rest = int(rest[:2]), rest[2:]
+        day, rest = int(rest[:2]), rest[2:]
+        hour, rest = int(rest[:2]), rest[2:]
+        mins, rest = int(rest[:2]), rest[2:]
+        sec, rest = int(rest[:2]), rest[2:]
+        assert len(rest) == 9, "Should have 9 digits of nanosec left"
+        nanos = int(rest)
+        return XFile(
+            name,
+            devname,
+            year,
+            month,
+            day,
+            hour,
+            mins,
+            sec,
+            nanos
+        )
+    except ValueError:
+        dt = datetime.datetime.strptime(timestamp, "%Y-%m-%dT%H%M%S")
+        return XFile(
+            name,
+            devname,
+            dt.year,
+            dt.month,
+            dt.day,
+            dt.hour,
+            dt.minute,
+            dt.second,
+            0,
+        )
+
+# From fileTimes.hpp:
+#
+# /// Construct the filename and full relative path based on a time and a device name and extension
+# /**  Fills in the fileName string with the timestamp encoded as
+#  * \verbatim
+#  *      devName_YYYYMMDDHHMMSSNNNNNNNNN.ext
+#  * \endverbatim
+#  * and the \p relPath string with the format
+#  * \verbatim
+#  *      devName/YYYY/MM/DD
+#  * \endverbatim
+
+def file_time_rel_path(root: pathlib.Path, xfile) -> pathlib.Path:
+    fmt_from_hpp = "%04i_%02i_%02i"
+    dest = fmt_from_hpp % (xfile.year, xfile.month, xfile.day) + '/' + xfile.filename
+    if root.name == xfile.devname:
+        dest = root / dest
+    else:
+        dest = root / xfile.devname / dest
+    return dest
+
+def copy_file_if_needed(src, dest, dry_run):
+    src_stat = src.stat()
+    ruid, euid, _ = os.getresuid()
+    if euid != 0 and src_stat.st_uid != euid:
+        raise RuntimeError(f"Current effective UID is {euid} and the file to copy has owner UID {src_stat.st_uid}. Can't preserve ownership!")
+    if dest.exists():
+        log.debug(f"Skip   {src} -> {dest} because the file exists")
+        return
+    if not dry_run:
+        shutil.copy2(src, dest)
+        log.info(f"Copied {src} -> {dest}")
+    else:
+        log.debug(f"Would have copied {src} to {dest}")
+
+def verify_file(src, dest, dry_run):
+    props = ('st_mode', 'st_uid', 'st_gid', 'st_size', 'st_mtime', 'st_mtime_ns')
+    ruid, euid, _ = os.getresuid()
+    src_stat = src.stat()
+    log.debug(f"{src=} {src_stat}")
+    if not dry_run:
+        if euid == 0:
+            shutil.chown(dest, user=src_stat.st_uid, group=src_stat.st_gid)
+        dest_stat = dest.stat()
+        log.debug(f"{dest=} {dest_stat}")
+        for prop in props:
+            if getattr(src_stat, prop) != getattr(dest_stat, prop):
+                log.warning(f"Mismatch on {prop} between {src} and {dest}")
+                return False
+    else:
+        log.debug(f"Would have verified that {src} and {dest} have identical metadata for {props}")
+    return True
+
+def remove_file(src, dry_run):
+    if not dry_run:
+        src.unlink()
+        log.info(f"Removed {src}")
+    else:
+        log.debug(f"Would have removed {src}")
+
+
+def mkdir_and_chown(dir_path: pathlib.Path, dry_run: bool):
+    if not dir_path.parent.is_dir():
+        mkdir_and_chown(dir_path.parent, dry_run=dry_run)
+    if dry_run:
+        log.debug(f"Would have made {dir_path} dir")
+    else:
+        # we already think dir_path.is_dir() is false
+        # to get to this point, but it's not an error
+        # if something else has created it
+        dir_path.mkdir(parents=False, exist_ok=True)
+    if EFFECTIVE_UID == 0:
+        if dry_run:
+            log.debug(f"Would have chowned {dir_path} to {XSUP_UID=} {MAGAOX_GID=}")
+        else:
+            os.chown(dir_path, XSUP_UID, MAGAOX_GID)
+
+PARENT_DIRS: set['str'] = set()
+
+def make_parent_dirs(parent: pathlib.Path, dry_run: bool):
+    global PARENT_DIRS
+    parent_path_str = str(parent)
+    if parent_path_str in PARENT_DIRS or parent.is_dir():
+        if dry_run:
+            log.debug(f"Would have reused dir {parent_path_str}")
+        else:
+            log.debug(f"{parent} exists")
+    else:
+        mkdir_and_chown(parent, dry_run=dry_run)
+        log.debug(f"Made dir {parent}")
+    PARENT_DIRS.add(parent_path_str)
+
+def organize_store(store_root: pathlib.Path, dry_run):
+    try:
+        folder_dt = datetime.datetime.strptime(store_root.name, "%Y_%m_%d")
+        log.debug(f"{store_root} matches a YYYY-MM-DD format, not descending into it")
+        return
+    except ValueError:
+        pass
+
+    for child in store_root.glob('*'):
+        if 'lookyloo' in child.name or 'selfRM' in child.name:
+            continue
+        if child.is_dir():
+            log.debug(f'Descending to {child}')
+            organize_store(child, dry_run)
+        else:
+            try:
+                new_target = file_time_rel_path(store_root, parse_xname(child.name))
+            except Exception:
+                log.exception(f"{child} failed to parse")
+                raise
+            make_parent_dirs(new_target.parent, dry_run)
+            copy_file_if_needed(child, new_target, dry_run)
+            if not verify_file(child, new_target, dry_run):
+                raise RuntimeError(f"Differing file metadata for {child} and {new_target}")
+            else:
+                remove_file(child, dry_run)
+
+def main(root_dirs, dry_run):
+    log.debug(f"Organizing all of these: {root_dirs}")
+    for root_dir in root_dirs:
+        log.debug(f"Visiting {root_dir}")
+        organize_store(pathlib.Path(root_dir), dry_run)
+    return 0
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('ROOT_DIRS', nargs='+')
+    parser.add_argument('--apply-changes', action='store_true')
+    args = parser.parse_args()
+    dry_run = not args.apply_changes
+    sys.exit(main(args.ROOT_DIRS, dry_run))

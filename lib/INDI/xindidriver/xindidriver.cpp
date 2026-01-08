@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <string>
+#include <chrono>
 #include <cstring>
 
 #include <fcntl.h>
@@ -46,22 +47,22 @@ struct driverFIFO
 int flushFIFO(const std::string & fileName)
 {
    int fd {-1};
- 
+
    #ifdef DEBUG
    debug << __FILE__ << " " << __LINE__ << std::endl;
    #endif
-   
+
    fd = open( fileName.c_str(), O_RDONLY | O_NONBLOCK);
-   
+
    char flushBuff[1024];
-   
+
    int rd = 1;
    int totrd = 0;
-   
+
    #ifdef DEBUG
    debug << __FILE__ << " " << __LINE__ << std::endl;
    #endif
-   
+
    // Create and clear out the FD set, set to watch the reader.
    fd_set fdsRead;
    FD_ZERO( &fdsRead );
@@ -69,40 +70,41 @@ int flushFIFO(const std::string & fileName)
 
    // Set the timeout on the select call.
    timeval tv;
-   tv.tv_sec = 1;
-   tv.tv_usec = 0;
 
    #ifdef DEBUG
    debug << __FILE__ << " " << __LINE__ << std::endl;
    #endif
    std::cerr << "Starting flush of " << fileName << "\n";
 
-   
+
    while(rd > 0)
    {
+      tv.tv_sec = 1;
+      tv.tv_usec = 0;
+
       int nRetval = ::select( fd + 1, &fdsRead, NULL, NULL, &tv );
 
-      #ifdef DEBUG      
+      #ifdef DEBUG
       debug << __FILE__ << " " << __LINE__ << std::endl;
       debug << nRetval << std::endl;
       #endif
-      
+
       if(nRetval != 0)
       {
          rd = read(fd, flushBuff, sizeof(flushBuff));
-      
+
          totrd += rd;
       }
       else rd = 0;
-         
+
    }
-      
+
    #ifdef DEBUG
    debug << __FILE__ << " " << __LINE__ << std::endl;
    #endif
-   
+
    std::cerr << "flushed " << totrd << " bytes from " << fileName << "\n";
-   
+
    return 0;
 }
 
@@ -178,14 +180,14 @@ void * xoverThread( void * vdf /**< [in] pointer to a driverFIFO struct */)
    {
       fdRead = df->stdfd;
       fdWrite = df->fd;
-      
+
       struct flock fl;
       fl.l_type = F_WRLCK; //get an exclusive lock
       fl.l_whence = SEEK_SET;
       fl.l_start = 0;
       fl.l_len = 0;
       fl.l_pid = getpid();
-   
+
       if(fcntl(df->fd, F_SETLK, &fl) < 0)
       {
          std::cerr << " (" << XINDID_COMPILEDNAME << "): failed to lock " << df->fileName << ".  Another process is already running.  Kill the zombies.\n";
@@ -198,9 +200,32 @@ void * xoverThread( void * vdf /**< [in] pointer to a driverFIFO struct */)
       fdWrite = df->stdfd;
    }
 
+   auto chrono_base = std::chrono::system_clock::now();
+   int counter = 0;
+   std::chrono::duration<double> elapsed_seconds;
+
    //Now loop until told to stop.
    while(!timeToDie)
    {
+
+      elapsed_seconds = std::chrono::system_clock::now() - chrono_base;
+      if (elapsed_seconds.count() < 0.1)
+      { 
+         ++counter;
+      } 
+      else
+      { 
+         if (counter > 1000)
+         {
+	    struct timeval sleeptv;
+	    sleeptv.tv_sec = 0;
+	    sleeptv.tv_usec = 100000;
+	    select (0, NULL, NULL, NULL, &sleeptv);
+         }
+         counter = 0;
+         chrono_base = std::chrono::system_clock::now();
+      } 
+
       rdbuff[0] = 0;
 
       // Create and clear out the FD set, set to watch the reader.
@@ -277,7 +302,7 @@ void * xoverThread( void * vdf /**< [in] pointer to a driverFIFO struct */)
 }
 
 
-/// Work function for the restart FIFO thread 
+/// Work function for the restart FIFO thread
 void * ctrlThread( void * vdf /**< [in] pointer to a driverFIFO struct */)
 {
    driverFIFO * df = static_cast<driverFIFO *>(vdf);
@@ -302,19 +327,19 @@ void * ctrlThread( void * vdf /**< [in] pointer to a driverFIFO struct */)
          }
       }
    }
-   
+
    char rdbuff[XINDID_BUFFSIZE];
-   
+
    //Now we try to read from it.  Anything at all will cause us to set timeToDie and thus this program will exit.
    int rd = read(df->fd, rdbuff, sizeof(rdbuff));
-   
+
    std::cerr << " (" << XINDID_COMPILEDNAME << "): control signaled -- time to die" << std::endl;
-   
+
    static_cast<void>(rd); //suppress warning
-   
+
    timeToDie = true;
-   
-   
+
+
    return 0;
 }
 
@@ -327,7 +352,7 @@ void sigHandler( int signum,
    static_cast<void>(signum);
    static_cast<void>(siginf);
    static_cast<void>(ucont);
-   
+
    timeToDie = true;
 }
 
@@ -414,12 +439,12 @@ int main( int argc, char **argv)
    #ifdef DEBUG
    debug.open("/tmp/" + myName + ".dbg");
    #endif
-   
+
    //Now that myName is known, install signal handler
    if( setSigTermHandler() < 0) return -1;
 
    //setSigIOHandler();
-   
+
    std::string stdinFifo = std::string(XINDID_FIFODIR) + "/" + myName + ".in";
    std::string stdoutFifo = std::string(XINDID_FIFODIR) + "/" + myName + ".out";
    std::string ctrlFifo = std::string(XINDID_FIFODIR) + "/" + myName + ".ctrl";
@@ -427,21 +452,21 @@ int main( int argc, char **argv)
    #ifdef DEBUG
    debug << __FILE__ << " " << __LINE__ << std::endl;
    #endif
-   
+
    flushFIFO(stdinFifo);
-   
+
    #ifdef DEBUG
    debug << __FILE__ << " " << __LINE__ << std::endl;
    #endif
-   
+
    flushFIFO(stdoutFifo);
-   
+
    #ifdef DEBUG
    debug << __FILE__ << " " << __LINE__ << std::endl;
    #endif
-   
+
    flushFIFO(ctrlFifo);
-   
+
    #ifdef DEBUG
    debug << __FILE__ << " " << __LINE__ << std::endl;
    #endif
@@ -453,7 +478,7 @@ int main( int argc, char **argv)
    driverFIFO dfOut (stdoutFifo, STDOUT_FILENO);
 
    driverFIFO dfCtrl (ctrlFifo, 0);
-   
+
    sleep(2); //This gives indiserver time to startup so it can handle any thing that comes from the fifos.
 
    //Launch the read/write threads, one each for STDIN and STDOUT and for control.
@@ -465,7 +490,7 @@ int main( int argc, char **argv)
 
    pthread_t ctrl_th = 0;
    pthread_create( &ctrl_th, NULL, ctrlThread, &dfCtrl );
-   
+
    //Now loop until killed.
    int rv;
    while( !timeToDie )
@@ -493,7 +518,7 @@ int main( int argc, char **argv)
          std::cerr << " (" << XINDID_COMPILEDNAME << "): control thread exited.\n";
          timeToDie = true;
       }
-      
+
       if(!timeToDie) sleep(1);
    }
 
@@ -508,7 +533,7 @@ int main( int argc, char **argv)
    pthread_join(ctrl_th, 0);
 
    std::cerr << " (" << XINDID_COMPILEDNAME << "): exiting" << std::endl;
-   
+
    return 0;
 
 }

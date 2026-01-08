@@ -1,0 +1,7 @@
+../../apps/adcTracker/adcTracker                     adctrack
+../../apps/strehlEstimator/strehlEstimator           strehl
+../../apps/sysMonitor/sysMonitor                     sysMonAOC
+../../apps/tcsInterface/tcsInterface                 tcsi
+../../apps/timeSeriesSimulator/timeSeriesSimulator   timeSeriesSimulator
+../../apps/w2tcsOffloader/w2tcsOffloader             w2tcsOffloader
+../../apps/zaberLowLevel/zaberLowLevel               zaberLowLevel
