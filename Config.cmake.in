@@ -1,12 +1,37 @@
 @PACKAGE_INIT@
 
 # Import the targets from the generated export file
-include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/XWCTkTargets.cmake")
 
 # Set variables that other CMake projects will use
-set(@PROJECT_NAME@_FOUND TRUE)
-set(@PROJECT_NAME@_VERSION "@PROJECT_VERSION@")
+set(XWCTk_FOUND TRUE)
+set(XWCTk_VERSION "@PROJECT_VERSION@")
 
 include(CMakeFindDependencyMacro)
+
+# Find all dependencies that XWCTk requires
+find_dependency(Threads REQUIRED)
+find_dependency(OpenMP REQUIRED COMPONENTS C CXX)
+find_dependency(ZLIB REQUIRED)
 find_dependency(Eigen3 REQUIRED NO_MODULE)
-find_dependency(milk REQUIRED PATHS "@PACKAGE_MILK_PC_PATH@")
+# find_dependency(milk REQUIRED PATHS "@PACKAGE_MILK_PC_PATH@")
+
+# Pkg-config dependencies
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(IMAGESTREAMIO REQUIRED IMPORTED_TARGET ImageStreamIO)
+pkg_check_modules(LIBUDEV REQUIRED IMPORTED_TARGET libudev)
+
+# These are found via find_library and need to be available to consumers
+find_library(MXLIB "libmxlib.so" REQUIRED)
+find_library(XRIFLIB "libxrif.a" REQUIRED)
+find_library(CFITSIO_LIB cfitsio REQUIRED)
+find_library(FLATBUFFERSLIB "libflatbuffers.a" REQUIRED)
+
+# Create xrif imported target if not already created by XWCTk installation
+if(NOT TARGET xrif::xrif)
+    add_library(xrif::xrif STATIC IMPORTED)
+    set_target_properties(xrif::xrif PROPERTIES
+        IMPORTED_LOCATION "${XRIFLIB}"
+        INTERFACE_LINK_LIBRARIES "OpenMP::OpenMP_C"
+    )
+endif()

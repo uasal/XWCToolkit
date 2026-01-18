@@ -3,7 +3,8 @@
   *
   * History:
   */
-#include "../../../tests/catch2/catch.hpp"
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
 
 #include "../modbus.hpp"
 #include "../modbus_exception.hpp"

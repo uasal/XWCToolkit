@@ -2,7 +2,8 @@
 /** Support for testing of the XWCtk
  *
  */
-#include "catch2/catch.hpp"
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
 
 #ifndef testXWC_hpp
     #define testXWC_hpp

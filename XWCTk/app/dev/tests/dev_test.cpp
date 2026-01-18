@@ -3,7 +3,8 @@
   *
   * History:
   */
-#include "../../../../tests/catch2/catch.hpp"
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
 
 #include "../../MagAOXApp.hpp"
 #include "../dmPokeWFS.hpp"

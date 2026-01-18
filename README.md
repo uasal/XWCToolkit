@@ -56,15 +56,7 @@ The following options are avialable on build. They do not need to be set, but ca
 | Name                        | Default               | Description |
 |-----------------------------|-----------------------|-------------|
 | `BUILD_SHARED_LIBS`         | ON                    | Build all libraries as shared libraries |
-| `MAGAOX_NOEDT`              | ON                    | Disable EDT driver support |
-| `NOINSTGRAPH`               | ON                    | Does not build instGraph utility (which depends on the instGraph repo) |
 | `MXLIB_MILK`                | TRUE                  | Enable milk (required by mxlib) |
-| `XWCTK_DISABLE_USER_CHECK`  | ON                    | Disable app user check |
-| `USE_APPS_LOGSCHEMAS`       | TRUE                  | Compile log schemas in apps dirs with the library. |
-|                             |                       | Assumes dir structure ${XWCTK_APPS_PATH}/appdir1/logger/types/schemas/ |
-|                             |                       | and ${XWCTK_APPS_PATH}/appdir1/logger/logCodes.dat. |
-|                             |                       | If FALSE, only templates included in this base library are compiled. |
-| `GIT_HEADER`                | `xwctk_git_version.h` | Name of required git version tracker file. |
 
 #### 2.2 Paths
 
