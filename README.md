@@ -4,9 +4,10 @@ This is the core library extracted from [MagAOX](https://github.com/magao-x/MagA
 
 ## 1. Dependencies
 
-#### 1.1 Provisioning host
+> #### 1.1 Provisioning host - *to be updated*
+>
+> The [XWCTk provisioning playbook](https://github.com/uasal/XWCTk_provisioning_playbook) can be used to automatically install dependencies and build the directory and permission structure required to run XWCToolkit. The playbook provisions the target host and then installs the XWCToolkit & the [ESCapps](https://github.com/uasal/ESCapps/) repository. The playbook requires [Ansible](https://docs.ansible.com/ansible/latest/getting_started/introduction.html), but Ansible does not need to be installed on the target host, just on the machine running the playbook.
 
-The [XWCTk provisioning playbook](https://github.com/uasal/XWCTk_provisioning_playbook) can be used to automatically install dependencies and build the directory and permission structure required to run XWCToolkit. The playbook provisions the target host and then installs the XWCToolkit & the [ESCapps](https://github.com/uasal/ESCapps/) repository. The playbook requires [Ansible](https://docs.ansible.com/ansible/latest/getting_started/introduction.html), but Ansible does not need to be installed on the target host, just on the machine running the playbook.
 
 #### 1.2 List of dependencies
 1. milk & ImageStreamIO (https://github.com/milk-org/milk)
@@ -33,8 +34,10 @@ The [XWCTk provisioning playbook](https://github.com/uasal/XWCTk_provisioning_pl
    $ make
    $ sudo make install
    ```
+<!---
 11. instGraph
     - [clone](https://github.com/jaredmales/instGraph.git) and follow [instructions](https://github.com/jaredmales/instGraph/tree/main?tab=readme-ov-file#building)
+-->
 
 ## 2. Software Configuration
 
@@ -105,10 +108,46 @@ Note the difference between the `apps` and `utils` components, is that upon inst
 
 Copy the template repository [XWCTkapps](https://github.com/uasal/XWCTkapps) as a new repository. To add a new app to this new repository, copy the templateCtrl folder and follow the instructions in the templateCtrl's README.md. Each app folder implements a single app. See [ESCapps](https://github.com/uasal/ESCapps/) for an example.
 
-<b>IMPORTANT:</b> The XWCTK library expects to find apps repositories in the dir pointed to by `XWCTK_APPS_PATH` (/opt/MagAOX/apps by default). If new telemetry types are implemented in the apps repository, the apps repositories need to be copied at `XWCTK_APPS_PATH` before building the apps and the XWCTK library. In this case the correct successions of steps is:
-- copy all apps repos at `XWCTK_APPS_PATH` (or set `XWCTK_APPS_PATH` to where the apps repos are)
-- build and install XWCTK
-- build and install the apps repos 
+### External Telemetry Types (Plugin System)
+External app packages register telemetry types via a single instrumentation plugin (.so).
+
+Key points — quick reference
+- Event code ranges: `0..20999` reserved for XWCTk core. External packages MUST use codes >= `21000`.
+- `eventCodes::UNKNOWN` (sentinel) / maximum code value: `65535` is reserved for unknown telemetry types.
+- Each instrument publishes one plugin (.so) that registers all of that instrument's telemetry types.
+- Plugins are installed under: `/opt/MagAOX/plugins/<InstrumentName>/` (controlled by `XWCTk_PLUGIN_DIR`).
+- Use `flatlogcodes` with a guard prefix (e.g. your package name) to avoid header-guard collisions between instrument packages.
+- Keep all instrument plugin types and their `logCodes.dat` in the same package so the single plugin can register them together.
+
+Files you will typically need to include in an instrument package that uses telemetry:
+- `logger/types/schemas/*.fbs` — FlatBuffers schema files for all telemetry types.
+- `logger/types/logCodes.dat` — list of type names and their numeric event codes (must be >= 21000).
+- Generated headers from `flatc` and `flatlogcodes` (the latter produces `logCodes.hpp`/`logTypes.hpp` with a guard prefix to avoid header-guard collisions between packages).
+- A single `logger/types/<instrument>_plugin.cpp` that instantiates one `LogSchemaPlugin` and registers `LogTypeHandlerAdapter<logT>` instances for each type.
+
+Minimal plugin example (recommended, adapter-based)
+```cpp
+#include <XWCTk/XWCTk/logger/plugin.hpp>
+#include "../loggerIncludes.hpp"
+
+using namespace MagAOX::logger;
+
+class MyInstrumentPlugin : public LogSchemaPlugin {
+    LogTypeHandlerAdapter<telem_mytype> m_mytypeHandler{"telem_mytype"};
+public:
+    const char* pluginName() const override { return "MyInstrument"; }
+    const char* pluginVersion() const override { return "1.0.0"; }
+    uint32_t numTypes() const override { return 1; }
+    const LogSchemaTypeHandler* getType(uint32_t i) const override { return (i==0) ? &m_mytypeHandler : nullptr; }
+    const LogSchemaTypeHandler* getTypeByCode(uint32_t c) const override { return (m_mytypeHandler.logCode() == c) ? &m_mytypeHandler : nullptr; }
+};
+
+extern "C" {
+    LogSchemaPlugin* create_schema_plugin() { return new MyInstrumentPlugin(); }
+    void destroy_schema_plugin(LogSchemaPlugin* p) { delete p; }
+    uint32_t get_schema_plugin_abi_version() { return XWCTK_PLUGIN_ABI_VERSION; }
+}
+```
 
 ## 5. Software Install
 
@@ -125,6 +164,7 @@ Install requires root privileges.
 | `/opt/MagAOX/drivers`       | Symlinks for INDI |
 | `/opt/MagAOX/drivers/fifos` | FIFOs for INDI |
 | `/opt/MagAOX/logs`          | Directory where logs are written by the applications |
+| `/opt/MagAOX/plugins`       | Telemetry schema plugins from external app packages |
 | `/opt/MagAOX/rawimages`     | Directory where raw images are written by the applications |
 | `/opt/MagAOX/secrets`       | Directory containing device passwords, etc. |
 | `/opt/MagAOX/source`        | Directory containing clones of this repo, [cacao-org/cacao](https://github.com/cacao-org/cacao), [jaredmales/mxlib](https://github.com/jaredmales/mxlib)                    , [jaredmales/milkzmq](https://github.com/jaredmales/milkzmq) |

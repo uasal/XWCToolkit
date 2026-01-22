@@ -32,7 +32,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries (ON creates .so shared library)
 # Enable CTest infrastructure (defines BUILD_TESTING option, default ON)
 include(CTest)
 
-# Catch2 header location (used by add_xwctk_test in cmake/utils.cmake)
+# Catch2 header location
 set(CATCH2_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests/catch2")
 
 if(NOT DEFINED MXLIB_MILK)
@@ -46,7 +46,7 @@ endif()
 set(XWCTK_PREFIX "/opt/MagAOX" CACHE PATH "Base directory for MagAOX vendor, packages, configs, drivers, apps & logs")
 
 if(NOT EXISTS "${XWCTK_PREFIX}")
-message(WARNING "Required directory ${XWCTK_PREFIX} does not exist.")
+    message(WARNING "Required directory ${XWCTK_PREFIX} does not exist.")
 endif()
 
 set(PREFIX "/usr/local" CACHE PATH "Default system installation path")
@@ -60,7 +60,14 @@ set(XWCTK_DRIVER_PATH "${XWCTK_PREFIX}/drivers" CACHE PATH "Path to the drivers 
 set(XWCTK_FIFO_PATH "${XWCTK_PREFIX}/drivers/fifos" CACHE PATH "Path to the fifos directory")
 set(XWCTK_LOG_PATH "${XWCTK_PREFIX}/logs" CACHE PATH "Path to the logs directory")
 set(XWCTK_CONFIG_PATH "${XWCTK_PREFIX}/config" CACHE PATH "Path to the config directory")
+set(XWCTK_BIN_PATH "${XWCTK_PREFIX}/bin" CACHE PATH "Path to the binaries directory")
 set(XWCTK_APPS_PATH "${XWCTK_PREFIX}/apps" CACHE PATH "Path to apps directory")
+set(XWCTK_PLUGIN_PATH "${XWCTK_PREFIX}/plugins" CACHE PATH "Path to telemetry schema plugins directory. External applications should install telemetry schema plugins to this directory.")
+
+# Event code ranges for conflict prevention
+# XWCTk reserves codes 0-20999. External packages must use 21000+
+set(XWCTK_EVENT_CODE_MAX_RESERVED 20999 CACHE STRING "Maximum event code reserved for XWCTk core library")
+set(XWCTK_EVENT_CODE_MIN_EXTERNAL 21000 CACHE STRING "Minimum event code for external packages (must be > MAX_RESERVED)")
 
 set(MILK_PATH "${PREFIX}/milk-1.03.00" CACHE PATH "Path to milk directory")
 set(MXLIB_PATH "${PREFIX}/lib" CACHE PATH "Path to mxlib lib directory")
@@ -160,7 +167,7 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 # ============================================================================
 # Uses gengithead.sh (from mxlib) to generate git version header.
 
-set(GIT_VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/magaox_git_version.h")
+set(GIT_VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/xwctk_git_version.h")
 
 find_program(GENGITHEAD_SH gengithead.sh REQUIRED
     HINTS /usr/local/bin ${PREFIX}/bin
@@ -168,7 +175,7 @@ find_program(GENGITHEAD_SH gengithead.sh REQUIRED
 
 add_custom_command(
     OUTPUT ${GIT_VERSION_HEADER}
-    COMMAND ${GENGITHEAD_SH} ${CMAKE_CURRENT_SOURCE_DIR} ${GIT_VERSION_HEADER} MAGAOX
+    COMMAND ${GENGITHEAD_SH} ${CMAKE_CURRENT_SOURCE_DIR} ${GIT_VERSION_HEADER} XWCTK
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Generating git version header via gengithead.sh"
     VERBATIM
@@ -199,6 +206,10 @@ endif()
 # Package Configuration
 # ============================================================================
 
+# Configure install path for bundled Catch2 headers so package config
+# can advertise the installed location to consumers.
+set(CATCH2_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include/XWCTk/tests/catch2")
+
 # Generate and install Config files for find_package()
 include(CMakePackageConfigHelpers)
 
@@ -221,12 +232,39 @@ install(
     DESTINATION "lib/cmake/XWCTk"
 )
 
+# Install alias config names to tolerate XWCTK vs XWCTk casing
+# (install identical copies under those names)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/XWCTkConfig.cmake"
+    DESTINATION "lib/cmake/XWCTk"
+    RENAME "XWCTKConfig.cmake")
+
+# Also provide aliased names for the version file
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/XWCTkConfigVersion.cmake"
+    DESTINATION "lib/cmake/XWCTk"
+    RENAME "XWCTKConfigVersion.cmake")
+
+# Install CMake utility scripts for use by external packages
+install(
+    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/cmake/"
+    DESTINATION "lib/cmake/XWCTk"
+    FILES_MATCHING PATTERN "*.cmake"
+)
+
 # Install export targets
 install(
     EXPORT XWCTkTargets
     FILE XWCTkTargets.cmake
     NAMESPACE XWCTk::
     DESTINATION "lib/cmake/XWCTk"
+)
+
+# Install generated config.h and git version header
+install(
+    FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/config.h"
+        "${CMAKE_CURRENT_BINARY_DIR}/xwctk_git_version.h"
+    DESTINATION include/XWCTk/
+    COMPONENT headers
 )
 
 # ============================================================================

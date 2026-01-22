@@ -2145,7 +2145,7 @@ void MagAOXApp<_useINDI>::logMessage( bufferPtrT &b )
 {
     if( logHeader::logLevel( b ) <= logPrio::LOG_NOTICE )
     {
-        logStdFormat( std::cerr, b );
+        logPluginStdFormat( std::cerr, b );
         std::cerr << "\n";
     }
 
@@ -2160,7 +2160,7 @@ void MagAOXApp<_useINDI>::logMessage( bufferPtrT &b )
         msg.setDevice( m_configName );
 
         std::stringstream logstdf;
-        logMinStdFormat( logstdf, b );
+        logPluginMinFormat( logstdf, b );
 
         msg.setMessage( logstdf.str() );
 

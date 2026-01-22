@@ -14,8 +14,8 @@ target_include_directories(telnet
 
 install(TARGETS telnet
     EXPORT XWCTkTargets
-    LIBRARY DESTINATION lib/XWCTk COMPONENT libraries
-    ARCHIVE DESTINATION lib/XWCTk COMPONENT libraries
+    LIBRARY DESTINATION lib COMPONENT libraries
+    ARCHIVE DESTINATION lib COMPONENT libraries
 )
 
 install(FILES libtelnet.h

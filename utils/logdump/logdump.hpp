@@ -522,7 +522,8 @@ inline void logdump::printLogBuff( const logPrioT &lvl, const eventCodeT &ec, co
         }
     }
 
-    logStdFormat( std::cout, logBuff );
+    // Use plugin-aware formatting to handle external instrument telemetry
+    logPluginStdFormat( std::cout, logBuff );
 
     std::cout << "\033[0m";
     std::cout << std::endl;
@@ -531,7 +532,8 @@ inline void logdump::printLogBuff( const logPrioT &lvl, const eventCodeT &ec, co
 inline void logdump::printLogJson( const msgLenT &len, bufferPtrT &logBuff )
 {
     static_cast<void>( len ); // be unused
-    logJsonFormat( std::cout, logBuff );
+    // Use plugin-aware JSON formatting to handle external instrument telemetry
+    logPluginJsonFormat( std::cout, logBuff );
     std::cout << std::endl;
 }
 

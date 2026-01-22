@@ -29,6 +29,7 @@ using namespace flatlogs;
 
 #include "generated/logTypes.hpp"
 #include "generated/logStdFormat.hpp"
+#include "logPluginFormat.hpp"
 
 namespace MagAOX
 {
@@ -500,7 +501,7 @@ void logManager<parentT, logFileT>::logThreadExec()
             }
             else if( logHeader::logLevel( *it ) <= logPrio::LOG_NOTICE )
             {
-               logStdFormat(std::cerr, *it);
+               logPluginStdFormat(std::cerr, *it);
                std::cerr << '\n';
             }
 

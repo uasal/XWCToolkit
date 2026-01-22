@@ -195,7 +195,7 @@ int logsurgeon::execute()
 
                         std::cerr << "Found corrupt section: \n";
                         std::cerr << "   Before: ";
-                        logStdFormat( std::cerr, lgBuffPtr );
+                        logPluginStdFormat( std::cerr, lgBuffPtr );
                         std::cerr << "\n";
 
                         // printLogBuff(lglvl, lgec, logHeader::msgLen(lastGBuff), lgBuffPtr);
@@ -204,7 +204,7 @@ int logsurgeon::execute()
                         totBad += kpt - badSt;
 
                         std::cerr << "   After:  ";
-                        logStdFormat( std::cerr, buffPtr );
+                        logPluginStdFormat( std::cerr, buffPtr );
                         std::cerr << "\n";
                     }
 

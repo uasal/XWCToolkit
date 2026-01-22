@@ -15,7 +15,6 @@
 
 // Installation paths (configured at build time)
 #define XWCTK_PREFIX "@XWCTK_PREFIX@"
-#define XWCTK_APPS_PATH "@XWCTK_APPS_PATH@"
 #define PREFIX "@PREFIX@"
 
 // Build options

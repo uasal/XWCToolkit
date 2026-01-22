@@ -60,3 +60,17 @@ if(COVERAGE)
 endif()
 
 message(STATUS "XWCToolkit tests configuration complete")
+
+# ---------------------------------------------------------------------------
+# Install test support headers (Catch2 and project test helpers)
+# ---------------------------------------------------------------------------
+install(
+    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/catch2/"
+    DESTINATION "include/XWCTk/tests/catch2"
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+)
+
+install(
+    FILES "${CMAKE_CURRENT_SOURCE_DIR}/testMacrosINDI.hpp"
+    DESTINATION "include/XWCTk/tests"
+)

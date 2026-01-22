@@ -92,6 +92,20 @@
    #define MAGAOX_rawimageRelPath "rawimages"
 #endif
 
+#ifndef MAGAOX_appsRelPath
+   /// The relative path to the apps directory.
+   /** This is the subdirectory for apps.
+     */
+   #define MAGAOX_appsRelPath "apps"
+#endif
+
+#ifndef MAGAOX_pluginsRelPath
+   /// The relative path to the plugins directory.
+   /** This is the subdirectory for plugins.
+     */
+   #define MAGAOX_pluginsRelPath "plugins"
+#endif
+
 #ifndef MAGAOX_cpusetPath
    /// The absolute path to the cpuset mount point
    /**

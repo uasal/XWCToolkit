@@ -24,6 +24,7 @@ set(XWCTK_SOURCES
     logger/logManager.cpp
     logger/logMap.cpp
     logger/logMeta.cpp
+    logger/logPluginLoader.cpp
     logger/types/telem.cpp
     modbus/modbus.cpp
     sys/runCommand.cpp
@@ -41,11 +42,19 @@ set(XWCTK_SOURCES
 # ============================================================================
 
 set(LOGGER_SCHEMA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/logger/types/schemas")
-set(LOGGER_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/logger/generated")
-set(TYPES_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/logger/types/generated")
 
-file(MAKE_DIRECTORY ${LOGGER_GENERATED_DIR})
-file(MAKE_DIRECTORY ${TYPES_GENERATED_DIR})
+# Source tree directories (where relative includes work correctly)
+set(SRC_LOGGER_GENERATED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/logger/generated")
+set(SRC_TYPES_GENERATED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/logger/types/generated")
+
+# Build tree directories (for out-of-source build support)
+set(BUILD_LOGGER_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/logger/generated")
+set(BUILD_TYPES_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/logger/types/generated")
+
+file(MAKE_DIRECTORY ${SRC_LOGGER_GENERATED_DIR})
+file(MAKE_DIRECTORY ${SRC_TYPES_GENERATED_DIR})
+file(MAKE_DIRECTORY ${BUILD_LOGGER_GENERATED_DIR})
+file(MAKE_DIRECTORY ${BUILD_TYPES_GENERATED_DIR})
 
 # ============================================================================
 # FlatBuffers Schema Generation (.fbs -> _generated.h + .bfbs)
@@ -57,13 +66,13 @@ file(GLOB FBS_SCHEMAS "${LOGGER_SCHEMA_DIR}/*.fbs")
 
 foreach(schema ${FBS_SCHEMAS})
     get_filename_component(schema_name ${schema} NAME_WE)
-    set(generated_header "${LOGGER_GENERATED_DIR}/${schema_name}_generated.h")
-    set(generated_bfbs "${TYPES_GENERATED_DIR}/${schema_name}.bfbs")
+    set(generated_header "${SRC_TYPES_GENERATED_DIR}/${schema_name}_generated.h")
+    set(generated_bfbs "${SRC_TYPES_GENERATED_DIR}/${schema_name}.bfbs")
     
     add_custom_command(
         OUTPUT ${generated_header} ${generated_bfbs}
-        COMMAND ${FLATC_EXECUTABLE} --cpp --gen-mutable -o ${LOGGER_GENERATED_DIR} ${schema}
-        COMMAND ${FLATC_EXECUTABLE} --binary --schema -o ${TYPES_GENERATED_DIR} ${schema}
+        COMMAND ${FLATC_EXECUTABLE} --cpp --gen-mutable -o ${SRC_TYPES_GENERATED_DIR} ${schema}
+        COMMAND ${FLATC_EXECUTABLE} --binary --schema -o ${SRC_TYPES_GENERATED_DIR} ${schema}
         DEPENDS ${schema}
         COMMENT "Generating FlatBuffers header and binary schema for ${schema_name}"
     )
@@ -73,18 +82,20 @@ foreach(schema ${FBS_SCHEMAS})
 endforeach()
 
 # ============================================================================
-# Binary Schemata Generation (.bfbs -> .bfbs.h -> binarySchemata.inc)
+# Binary Schemata Generation (.bfbs -> binarySchemata.inc via xxd)
 # ============================================================================
 
 find_program(XXD_EXECUTABLE xxd REQUIRED)
 
-set(BINARY_SCHEMATA_INC "${LOGGER_GENERATED_DIR}/binarySchemata.inc")
+set(BINARY_SCHEMATA_INC "${SRC_LOGGER_GENERATED_DIR}/binarySchemata.inc")
 
 add_custom_command(
     OUTPUT ${BINARY_SCHEMATA_INC}
-    COMMAND ${CMAKE_COMMAND} -E echo "// Auto-generated binary schemata" > ${BINARY_SCHEMATA_INC}
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_binary_schemata.sh
-            ${TYPES_GENERATED_DIR} ${BINARY_SCHEMATA_INC} ${XXD_EXECUTABLE}
+    COMMAND ${CMAKE_COMMAND}
+        -DBFBS_DIR=${SRC_TYPES_GENERATED_DIR}
+        -DOUTPUT_FILE=${BINARY_SCHEMATA_INC}
+        -DXXD=${XXD_EXECUTABLE}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/generateBinarySchemata.cmake
     DEPENDS ${GENERATED_BFBS}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Generating binarySchemata.inc from .bfbs files"
@@ -95,19 +106,28 @@ add_custom_command(
 # ============================================================================
 
 set(LOG_CODES_DAT "${CMAKE_CURRENT_SOURCE_DIR}/logger/logCodes.dat")
-set(LOG_TYPES_HPP "${LOGGER_GENERATED_DIR}/logTypes.hpp")
+set(LOG_TYPES_HPP "${SRC_LOGGER_GENERATED_DIR}/logTypes.hpp")
 
 add_custom_command(
     OUTPUT ${LOG_TYPES_HPP}
-    COMMAND flatlogcodes
+    COMMAND flatlogcodes ${CMAKE_CURRENT_SOURCE_DIR}/logger
     DEPENDS ${LOG_CODES_DAT} ${FBS_SCHEMAS} flatlogcodes
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/logger
     COMMENT "Generating logTypes.hpp via flatlogcodes"
 )
 
+# Copy generated files to build tree
+add_custom_command(
+    OUTPUT ${BUILD_LOGGER_GENERATED_DIR}/logTypes.hpp
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${SRC_LOGGER_GENERATED_DIR} ${BUILD_LOGGER_GENERATED_DIR}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${SRC_TYPES_GENERATED_DIR} ${BUILD_TYPES_GENERATED_DIR}
+    DEPENDS ${LOG_TYPES_HPP} ${BINARY_SCHEMATA_INC} ${GENERATED_HEADERS}
+    COMMENT "Copying generated files to build tree"
+)
+
 # Custom target for all generated code
 add_custom_target(generate_logger_code
-    DEPENDS ${GENERATED_HEADERS} ${LOG_TYPES_HPP} ${BINARY_SCHEMATA_INC}
+    DEPENDS ${GENERATED_HEADERS} ${LOG_TYPES_HPP} ${BINARY_SCHEMATA_INC} ${BUILD_LOGGER_GENERATED_DIR}/logTypes.hpp
 )
 
 # ============================================================================
@@ -129,7 +149,7 @@ set_target_properties(XWCTk PROPERTIES
 # ============================================================================
 
 target_precompile_headers(XWCTk
-    PUBLIC
+    PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/libMagAOX.hpp
 )
 
@@ -141,9 +161,9 @@ target_include_directories(XWCTk
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/logger>
-        $<BUILD_INTERFACE:${LOGGER_GENERATED_DIR}>
-        $<BUILD_INTERFACE:${TYPES_GENERATED_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/logger>
+        $<BUILD_INTERFACE:${SRC_LOGGER_GENERATED_DIR}>
+        $<BUILD_INTERFACE:${SRC_TYPES_GENERATED_DIR}>
         $<INSTALL_INTERFACE:include>
         $<INSTALL_INTERFACE:include/XWCTk>
 )
@@ -195,34 +215,97 @@ install(TARGETS XWCTk
 
 # Install main header
 install(FILES libMagAOX.hpp
-    DESTINATION include/XWCTk
+    DESTINATION include/XWCTk/XWCTk
     COMPONENT headers
 )
 
-# Install subdirectory headers (excluding tests)
-install(DIRECTORY
-    app/
-    common/
-    file/
-    ImageStreamIO/
-    logger/
-    modbus/
-    sys/
-    tty/
-    DESTINATION include/XWCTk
+# Install subdirectory headers
+# (Doing in for each dir preserves the directory structure)
+install(DIRECTORY app/
+    DESTINATION include/XWCTk/XWCTk/app
+    COMPONENT headers
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+    PATTERN "tests" EXCLUDE
+)
+
+install(DIRECTORY common/
+    DESTINATION include/XWCTk/XWCTk/common
+    COMPONENT headers
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+)
+
+install(DIRECTORY file/
+    DESTINATION include/XWCTk/XWCTk/file
+    COMPONENT headers
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+)
+
+install(DIRECTORY ImageStreamIO/
+    DESTINATION include/XWCTk/XWCTk/ImageStreamIO
+    COMPONENT headers
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+)
+
+install(DIRECTORY modbus/
+    DESTINATION include/XWCTk/XWCTk/modbus
+    COMPONENT headers
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+)
+
+install(DIRECTORY sys/
+    DESTINATION include/XWCTk/XWCTk/sys
+    COMPONENT headers
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+)
+
+install(DIRECTORY tty/
+    DESTINATION include/XWCTk/XWCTk/tty
+    COMPONENT headers
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+)
+
+# Install logger headers separately (excluding generated subdirectory)
+install(DIRECTORY logger/
+    DESTINATION include/XWCTk/XWCTk/logger
     COMPONENT headers
     FILES_MATCHING
         PATTERN "*.hpp"
         PATTERN "*.h"
+        PATTERN "doc" EXCLUDE
         PATTERN "tests" EXCLUDE
+        PATTERN "generated" EXCLUDE
+        PATTERN "types" EXCLUDE
+)
+
+# Install logger types directory
+install(DIRECTORY logger/types/
+    DESTINATION include/XWCTk/XWCTk/logger/types
+    COMPONENT headers
+    FILES_MATCHING
+        PATTERN "*.hpp"
+        PATTERN "*.h"
+        PATTERN "schemas" EXCLUDE
         PATTERN "generated" EXCLUDE
 )
 
-# Install generated headers
-install(DIRECTORY ${LOGGER_GENERATED_DIR}/
-    DESTINATION include/XWCTk/logger/generated
+# Install logger types generated directory (from source tree)
+install(DIRECTORY ${SRC_TYPES_GENERATED_DIR}/
+    DESTINATION include/XWCTk/XWCTk/logger/types/generated
     COMPONENT headers
-    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h" PATTERN "*.inc"
+    FILES_MATCHING
+        PATTERN "*.bfbs"
+        PATTERN "*.h"
+)
+
+# Install generated headers (from source tree)
+# FlatBuffers generates .h and .inc files
+install(DIRECTORY ${SRC_LOGGER_GENERATED_DIR}/
+    DESTINATION include/XWCTk/XWCTk/logger/generated
+    COMPONENT headers
+    FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "*.inc"
+        PATTERN "*.hpp"
 )
 
 # ============================================================================

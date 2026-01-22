@@ -17,19 +17,19 @@ add_library(indi_common
 target_include_directories(indi_common
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:include/XWCTk/lib/INDI>
+        $<INSTALL_INTERFACE:include/XWCTk/lib/INDI/libcommon>
 )
 
 target_link_libraries(indi_common PUBLIC lilxml)
 
 install(TARGETS indi_common
     EXPORT XWCTkTargets
-    ARCHIVE DESTINATION lib/XWCTk COMPONENT libraries
+    ARCHIVE DESTINATION lib COMPONENT libraries
 )
 
-# Install libcommon headers
+# Install libcommon headers (preserving subdirectory structure)
 file(GLOB LIBCOMMON_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
 install(FILES ${LIBCOMMON_HEADERS}
-    DESTINATION include/XWCTk/lib/INDI
+    DESTINATION include/XWCTk/lib/INDI/libcommon
     COMPONENT libraries
 )

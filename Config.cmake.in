@@ -7,6 +7,24 @@ include("${CMAKE_CURRENT_LIST_DIR}/XWCTkTargets.cmake")
 set(XWCTk_FOUND TRUE)
 set(XWCTk_VERSION "@PROJECT_VERSION@")
 
+# Set paths that this project uses
+# Base directory for XWCTk installation
+set(XWCTk_DIR "@XWCTK_PREFIX@")
+# Installation directory for executables
+set(XWCTk_BIN_DIR "@XWCTK_BIN_PATH@")
+# Installation directory for external applications
+set(XWCTk_APPS_DIR "@XWCTK_APPS_PATH@")
+# Installation directory for telemetry schema plugins from external applications
+set(XWCTk_PLUGIN_DIR "@XWCTK_PLUGIN_PATH@")
+
+# Event code range reserved for XWCTk core library
+# External packages MUST use codes >= XWCTk_EVENT_CODE_MIN_EXTERNAL
+set(XWCTk_EVENT_CODE_MAX_RESERVED @XWCTK_EVENT_CODE_MAX_RESERVED@)
+set(XWCTk_EVENT_CODE_MIN_EXTERNAL @XWCTK_EVENT_CODE_MIN_EXTERNAL@)
+
+# CMake utility scripts directory (for GenerateBinarySchemata.cmake, etc.)
+set(XWCTk_CMAKE_DIR "${CMAKE_CURRENT_LIST_DIR}")
+
 include(CMakeFindDependencyMacro)
 
 # Find all dependencies that XWCTk requires

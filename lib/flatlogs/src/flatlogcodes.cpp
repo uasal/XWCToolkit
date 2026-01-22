@@ -199,7 +199,8 @@ std::string stoup( const std::string & in)
 
 /// Write the logCodes.hpp header
 int emitLogCodes( const std::string & fileName,
-                  std::map<uint16_t, typeSchemaPair> & logCodes
+                  std::map<uint16_t, typeSchemaPair> & logCodes,
+                  const std::string & guardPrefix = ""  ///< [in] Optional prefix for header guards and function names
                 )
 {
    typedef std::map<uint16_t, typeSchemaPair> mapT;
@@ -207,8 +208,11 @@ int emitLogCodes( const std::string & fileName,
    std::ofstream fout;
    fout.open(fileName);
 
-   fout << "#ifndef logger_logCodes_hpp\n";
-   fout << "#define logger_logCodes_hpp\n";
+   // Build header guard with optional prefix
+   std::string guardName = guardPrefix.empty() ? "logger_logCodes_hpp" : guardPrefix + "_logger_logCodes_hpp";
+
+   fout << "#ifndef " << guardName << "\n";
+   fout << "#define " << guardName << "\n";
    fout << "#include <flatlogs/flatlogs.hpp>\n";
    fout << "namespace MagAOX\n";
    fout << "{\n";
@@ -221,11 +225,19 @@ int emitLogCodes( const std::string & fileName,
       {
          fout << "   constexpr static flatlogs::eventCodeT " << stoup(it->second.type) << " = " << it->first <<";\n";
       }
-      fout << "   constexpr static flatlogs::eventCodeT UNKNOWN = " << std::numeric_limits<flatlogs::eventCodeT>::max()  <<";\n";
+      // UNKNOWN is a sentinel for "lookup failed" - only define in core library (no guard prefix), otherwise would get redefine error
+      if(guardPrefix.empty())
+      {
+         fout << "   constexpr static flatlogs::eventCodeT UNKNOWN = " << std::numeric_limits<flatlogs::eventCodeT>::max() << ";\n";
+      }
    fout << "}\n";
    fout << '\n';
+
+   // Function name with optional prefix for disambiguation
+   std::string funcPrefix = guardPrefix.empty() ? "" : guardPrefix + "_";
+
    fout << "inline\n";
-   fout << "flatlogs::eventCodeT eventCode( const std::string & cn /**< [in] the code name to convert */)\n";
+   fout << "flatlogs::eventCodeT " << funcPrefix << "eventCode( const std::string & cn /**< [in] the code name to convert */)\n";
    fout << "{\n";
    it = logCodes.begin();
    fout << "    if(cn == \"" << it->second.type << "\" )\n";
@@ -243,13 +255,21 @@ int emitLogCodes( const std::string & fileName,
    }
    fout << "    else\n";
    fout << "    {\n";
-   fout << "        return eventCodes::UNKNOWN;\n";
+   // For external packages (i.e. when guard prefix provided), use numeric value since UNKNOWN is defined in XWCTk core
+   if(!guardPrefix.empty())
+   {
+      fout << "        return " << std::numeric_limits<flatlogs::eventCodeT>::max() << "; // UNKNOWN\n";
+   }
+   else
+   {
+      fout << "        return eventCodes::UNKNOWN;\n";
+   }
    fout << "    }\n";
-   fout << "} // flatlogs::eventCodeT eventCode(const std::string &)\n";
+   fout << "} // flatlogs::eventCodeT " << funcPrefix << "eventCode(const std::string &)\n";
 
    fout << '\n';
    fout << "inline\n";
-   fout << "std::string eventCodeName( flatlogs::eventCodeT ec/**< [in] the code to convert to its name */)\n";
+   fout << "std::string " << funcPrefix << "eventCodeName( flatlogs::eventCodeT ec/**< [in] the code to convert to its name */)\n";
    fout << "{\n";
    it = logCodes.begin();
    fout << "    if(ec == eventCodes::" << stoup(it->second.type) << " )\n";
@@ -269,7 +289,7 @@ int emitLogCodes( const std::string & fileName,
    fout << "    {\n";
    fout << "        return \"unknown event code\";\n";
    fout << "    }\n";
-   fout << "} // std::string eventCodeName(flatlogs::eventCodeT)\n";
+   fout << "} // std::string " << funcPrefix << "eventCodeName(flatlogs::eventCodeT)\n";
    fout << '\n';
 
    fout << "}\n";
@@ -280,9 +300,10 @@ int emitLogCodes( const std::string & fileName,
    return 0;
 }
 
-/// Write the logCodes.hpp header
+/// Write the logMemberAccessor.hpp header
 int emitLogMemberAccessor( const std::string & fileName,
-                  std::map<uint16_t, typeSchemaPair> & logCodes
+                  std::map<uint16_t, typeSchemaPair> & logCodes,
+                  const std::string & guardPrefix = ""  ///< [in] Optional prefix for header guards
                 )
 {
    typedef std::map<uint16_t, typeSchemaPair> mapT;
@@ -290,8 +311,11 @@ int emitLogMemberAccessor( const std::string & fileName,
    std::ofstream fout;
    fout.open(fileName);
 
-   fout << "#ifndef logger_logMemberAccessor_hpp\n";
-   fout << "#define logger_logMemberAccessor_hpp\n";
+   std::string guardName = guardPrefix.empty() ? "logger_logMemberAccessor_hpp" : guardPrefix + "_logger_logMemberAccessor_hpp";
+   std::string funcPrefix = guardPrefix.empty() ? "" : guardPrefix + "_";
+
+   fout << "#ifndef " << guardName << "\n";
+   fout << "#define " << guardName << "\n";
    fout << "#include <flatlogs/flatlogs.hpp>\n";
    fout << "#include \"logTypes.hpp\"\n";
    fout << "namespace MagAOX\n";
@@ -299,7 +323,7 @@ int emitLogMemberAccessor( const std::string & fileName,
    fout << "namespace logger\n";
    fout << "{\n\n";
    fout << "inline\n";
-   fout << "logMetaDetail logMemberAccessor( flatlogs::eventCodeT ec,\n";
+   fout << "logMetaDetail " << funcPrefix << "logMemberAccessor( flatlogs::eventCodeT ec,\n";
    fout << "                                 const std::string & memberName\n";
    fout << "                               )\n";
    fout << "{\n";
@@ -325,7 +349,8 @@ int emitLogMemberAccessor( const std::string & fileName,
 
 ///Write the logStdFormat.hpp header.
 int emitStdFormatHeader( const std::string & fileName,
-                         std::map<uint16_t, typeSchemaPair> & logCodes
+                         std::map<uint16_t, typeSchemaPair> & logCodes,
+                         const std::string & guardPrefix = ""  ///< [in] Optional prefix for header guards
                        )
 {
    typedef std::map<uint16_t, typeSchemaPair> mapT;
@@ -335,9 +360,11 @@ int emitStdFormatHeader( const std::string & fileName,
    std::ofstream fout;
    fout.open(fileName);
 
+   std::string guardName = guardPrefix.empty() ? "logger_logStdFormat_hpp" : guardPrefix + "_logger_logStdFormat_hpp";
+   std::string funcPrefix = guardPrefix.empty() ? "" : guardPrefix + "_";
 
-   fout << "#ifndef logger_logStdFormat_hpp\n";
-   fout << "#define logger_logStdFormat_hpp\n";
+   fout << "#ifndef " << guardName << "\n";
+   fout << "#define " << guardName << "\n";
 
    fout << "#include <flatlogs/flatlogs.hpp>\n";
 
@@ -350,7 +377,7 @@ int emitStdFormatHeader( const std::string & fileName,
    fout << "{\n";
 
    fout << "template<class iosT>\n";
-   fout << "iosT & logStdFormat( iosT & ios,\n";
+   fout << "iosT & " << funcPrefix << "logStdFormat( iosT & ios,\n";
    fout << "                     flatlogs::bufferPtrT & buffer )\n";
    fout << "{\n";
    fout << "   flatlogs::eventCodeT ec;\n";
@@ -373,7 +400,7 @@ int emitStdFormatHeader( const std::string & fileName,
    it = logCodes.begin();
 
    fout << "template<class iosT>\n";
-   fout << "iosT & logShortStdFormat( iosT & ios,\n";
+   fout << "iosT & " << funcPrefix << "logShortStdFormat( iosT & ios,\n";
    fout << "                          const std::string & appName,\n";
    fout << "                          flatlogs::bufferPtrT & buffer )\n";
    fout << "{\n";
@@ -398,7 +425,7 @@ int emitStdFormatHeader( const std::string & fileName,
    it = logCodes.begin();
 
    fout << "template<class iosT>\n";
-   fout << "iosT & logMinStdFormat( iosT & ios,\n";
+   fout << "iosT & " << funcPrefix << "logMinStdFormat( iosT & ios,\n";
    fout << "                        flatlogs::bufferPtrT & buffer )\n";
    fout << "{\n";
    fout << "   flatlogs::eventCodeT ec;\n";
@@ -420,7 +447,7 @@ int emitStdFormatHeader( const std::string & fileName,
    it = logCodes.begin();
 
    fout << "template<class iosT>\n";
-   fout << "iosT & logJsonFormat( iosT & ios,\n";
+   fout << "iosT & " << funcPrefix << "logJsonFormat( iosT & ios,\n";
    fout << "                        flatlogs::bufferPtrT & buffer )\n";
    fout << "{\n";
 
@@ -459,7 +486,8 @@ int emitStdFormatHeader( const std::string & fileName,
 
 ///Write the logVerify.hpp header.
 int emitVerifyHeader( const std::string & fileName,
-                      std::map<uint16_t, typeSchemaPair> & logCodes
+                      std::map<uint16_t, typeSchemaPair> & logCodes,
+                      const std::string & guardPrefix = ""  ///< [in] Optional prefix for header guards
                     )
 {
    typedef std::map<uint16_t, typeSchemaPair> mapT;
@@ -469,9 +497,11 @@ int emitVerifyHeader( const std::string & fileName,
    std::ofstream fout;
    fout.open(fileName);
 
+   std::string guardName = guardPrefix.empty() ? "logger_logVerify_hpp" : guardPrefix + "_logger_logVerify_hpp";
+   std::string funcPrefix = guardPrefix.empty() ? "" : guardPrefix + "_";
 
-   fout << "#ifndef logger_logVerify_hpp\n";
-   fout << "#define logger_logVerify_hpp\n";
+   fout << "#ifndef " << guardName << "\n";
+   fout << "#define " << guardName << "\n";
 
    fout << "#include <flatlogs/flatlogs.hpp>\n";
 
@@ -482,7 +512,7 @@ int emitVerifyHeader( const std::string & fileName,
    fout << "{\n";
    fout << "namespace logger\n";
    fout << "{\n";
-   fout << "inline bool logVerify( flatlogs::eventCodeT ec,\n";
+   fout << "inline bool " << funcPrefix << "logVerify( flatlogs::eventCodeT ec,\n";
    fout << "                       flatlogs::bufferPtrT & buffer,\n";
    fout << "                       flatlogs::msgLenT len )\n";
    fout << "{\n";
@@ -510,9 +540,10 @@ int emitVerifyHeader( const std::string & fileName,
    return 0;
 }
 
-///Write the logVerify.hpp header.
+///Write the logCodeValid.hpp header.
 int emitCodeValidHeader( const std::string & fileName,
-                         std::map<uint16_t, typeSchemaPair> & logCodes
+                         std::map<uint16_t, typeSchemaPair> & logCodes,
+                         const std::string & guardPrefix = ""  ///< [in] Optional prefix for header guards
                        )
 {
    typedef std::map<uint16_t, typeSchemaPair> mapT;
@@ -522,9 +553,11 @@ int emitCodeValidHeader( const std::string & fileName,
    std::ofstream fout;
    fout.open(fileName);
 
+   std::string guardName = guardPrefix.empty() ? "logger_logCodeValid_hpp" : guardPrefix + "_logger_logCodeValid_hpp";
+   std::string funcPrefix = guardPrefix.empty() ? "" : guardPrefix + "_";
 
-   fout << "#ifndef logger_logCodeValid_hpp\n";
-   fout << "#define logger_logCodeValid_hpp\n";
+   fout << "#ifndef " << guardName << "\n";
+   fout << "#define " << guardName << "\n";
 
    fout << "#include <flatlogs/flatlogs.hpp>\n";
 
@@ -535,7 +568,7 @@ int emitCodeValidHeader( const std::string & fileName,
    fout << "{\n";
    fout << "namespace logger\n";
    fout << "{\n";
-   fout << "inline bool logCodeValid( flatlogs::eventCodeT ec)\n";
+   fout << "inline bool " << funcPrefix << "logCodeValid( flatlogs::eventCodeT ec)\n";
    fout << "{\n";
    fout << "   switch(ec)\n";
    fout << "   {\n";
@@ -553,7 +586,7 @@ int emitCodeValidHeader( const std::string & fileName,
    fout << "}\n"; //namespace logger
    fout << "}\n"; //namespace MagAOX
 
-   fout << "#endif\n"; //logger_logVerify_hpp
+   fout << "#endif\n"; //logger_logCodeValid_hpp
 
    fout.close();
 
@@ -562,7 +595,8 @@ int emitCodeValidHeader( const std::string & fileName,
 
 /// Write the logTypes.hpp header
 int emitLogTypes( const std::string & fileName,
-                  std::map<uint16_t, typeSchemaPair> & logCodes
+                  std::map<uint16_t, typeSchemaPair> & logCodes,
+                  const std::string & guardPrefix = ""  ///< [in] Optional prefix for header guards
                 )
 {
    typedef std::map<uint16_t, typeSchemaPair> mapT;
@@ -572,8 +606,10 @@ int emitLogTypes( const std::string & fileName,
    std::ofstream fout;
    fout.open(fileName);
 
-   fout << "#ifndef logger_logTypes_hpp\n";
-   fout << "#define logger_logTypes_hpp\n";
+   std::string guardName = guardPrefix.empty() ? "logger_logTypes_hpp" : guardPrefix + "_logger_logTypes_hpp";
+
+   fout << "#ifndef " << guardName << "\n";
+   fout << "#define " << guardName << "\n";
    fout << "#include \"logCodes.hpp\"\n";
    for(; it!=logCodes.end(); ++it)
    {
@@ -603,16 +639,41 @@ int emitBinarySchemataDeclarations( const std::string & fileName,
    return 0;
 }
 
+void printUsage(const char* progName)
+{
+   std::cerr << "Usage: " << progName << " [output_dir] [guard_prefix]\n";
+   std::cerr << "  output_dir:   Optional directory for generated files (default: current dir)\n";
+   std::cerr << "  guard_prefix: Optional prefix for header guards to avoid conflicts\n";
+   std::cerr << "                (e.g., 'escapps' produces escapps_logger_logCodes_hpp)\n";
+   std::cerr << "\nExample:\n";
+   std::cerr << "  " << progName << " build/logger escapps\n";
+}
+
 ///\todo needs to make generated directory
-int main()
+int main(int argc, char* argv[])
 {
    typedef std::map<uint16_t, typeSchemaPair> mapT;
    typedef std::set<std::string> setT;
 
+   // Default directories (relative to working directory)
    std::string generatedDir = "generated";
    std::string schemaDir = "types/schemas";
-
    std::string schemaGeneratedDir = "types/generated";
+   std::string guardPrefix = "";  // Optional prefix for header guards
+
+   // Optional: output directory prefix from command line
+   if(argc > 1)
+   {
+      std::string outDir = argv[1];
+      generatedDir = outDir + "/generated";
+      schemaGeneratedDir = outDir + "/types/generated";
+   }
+
+   // Optional: guard prefix for header guards (to avoid conflicts between packages)
+   if(argc > 2)
+   {
+      guardPrefix = argv[2];
+   }
 
    mkdir(generatedDir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
    mkdir(schemaGeneratedDir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -646,12 +707,12 @@ int main()
       return -1;
    }
 
-   emitStdFormatHeader(stdFormatHeader, logCodes );
-   emitVerifyHeader(verifyHeader, logCodes );
-   emitLogCodes( logCodesHeader, logCodes );
-   emitLogMemberAccessor(logMemberAccessorHeader, logCodes);
-   emitLogTypes( logTypesHeader, logCodes );
-   emitCodeValidHeader( logCodeValidHeader, logCodes);
+   emitStdFormatHeader(stdFormatHeader, logCodes, guardPrefix);
+   emitVerifyHeader(verifyHeader, logCodes, guardPrefix);
+   emitLogCodes(logCodesHeader, logCodes, guardPrefix);
+   emitLogMemberAccessor(logMemberAccessorHeader, logCodes, guardPrefix);
+   emitLogTypes(logTypesHeader, logCodes, guardPrefix);
+   emitCodeValidHeader(logCodeValidHeader, logCodes, guardPrefix);
    emitBinarySchemataDeclarations( binarySchemataDeclarations, schemas );
 
    std::string flatc = "flatc -o " + schemaGeneratedDir + " --cpp --reflect-types --reflect-names";

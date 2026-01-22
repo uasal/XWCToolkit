@@ -6,16 +6,16 @@ add_library(lilxml
 target_include_directories(lilxml
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:include/XWCTk/lib/INDI>
+        $<INSTALL_INTERFACE:include/XWCTk/lib/INDI/liblilxml>
 )
 
 install(TARGETS lilxml
     EXPORT XWCTkTargets
-    LIBRARY DESTINATION lib/XWCTk COMPONENT libraries
-    ARCHIVE DESTINATION lib/XWCTk COMPONENT libraries
+    LIBRARY DESTINATION lib COMPONENT libraries
+    ARCHIVE DESTINATION lib COMPONENT libraries
 )
 
 install(FILES lilxml.h base64.h
-    DESTINATION include/XWCTk/lib/INDI
+    DESTINATION include/XWCTk/lib/INDI/liblilxml
     COMPONENT libraries
 )
