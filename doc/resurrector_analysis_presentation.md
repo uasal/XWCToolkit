@@ -46,9 +46,9 @@ Layer 1: [In-process recovery — MagAOXApp]
 
 - All XWCToolkit applications derive from `MagAOXApp`
 - Provides: lifecycle management, state machine, signal handling, PID locking
-- Source: `XWCTK/app/MagAOXApp.hpp`
+- Source: [`XWCTK/app/MagAOXApp.hpp`](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp)
 
-Direct quote — single-instance enforcement (line 111–114):
+Direct quote — single-instance enforcement ([line 111–114](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L111-L114)):
 
 \lstset{language=C++}
 ```cpp
@@ -60,7 +60,7 @@ Direct quote — single-instance enforcement (line 111–114):
 
 ## The Main Event Loop
 
-Core loop drives all application behavior — source lines 1481–1557:
+Core loop drives all application behavior — [source lines 1481–1557](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L1481-L1557):
 
 \lstset{language=C++}
 ```cpp
@@ -83,7 +83,7 @@ while( m_shutdown == 0)
 
 ## The Shutdown Flag
 
-The central coordination mechanism — line 102:
+The central coordination mechanism — [line 102](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L102):
 
 \lstset{language=C++}
 ```cpp
@@ -101,7 +101,7 @@ int m_shutdown {0};
 
 ## Application Startup Sequence
 
-Careful multi-phase initialization — lines 1392–1444:
+Careful multi-phase initialization — [lines 1392–1444](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L1392-L1444):
 
 \lstset{language=C++}
 ```cpp
@@ -132,7 +132,7 @@ if(startINDI() < 0)          // Phase 5: INDI
 
 ## The State Machine
 
-Defined in `stateCodes.hpp` (lines 42–58):
+Defined in [`stateCodes.hpp`](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/stateCodes.hpp#L42-L58) (lines 42–58):
 
 \lstset{language=C++}
 ```cpp
@@ -163,7 +163,7 @@ enum : stateCodeT {
 
 . . .
 
-Key distinction from the source (line 42–43):
+Key distinction from the source ([line 42–43](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/stateCodes.hpp#L42-L43)):
 
 - `FAILURE`: *"should be used when m_shutdown is set for an error"*
 - `ERROR`: *"recovering (with or without intervention)"*
@@ -176,7 +176,7 @@ Key distinction from the source (line 42–43):
 
 ## Log Deduplication: stateLogged()
 
-Prevents log flooding during sustained errors — lines 492–508:
+Prevents log flooding during sustained errors — [lines 492–508](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L492-L508):
 
 \lstset{language=C++}
 ```cpp
@@ -197,7 +197,7 @@ Prevents log flooding during sustained errors — lines 492–508:
 
 ## The Missing Heartbeat
 
-Line 1536, inside the main event loop:
+[Line 1536](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L1536), inside the main event loop:
 
 \lstset{language=C++}
 ```cpp
@@ -218,7 +218,7 @@ Line 1536, inside the main event loop:
 
 ## Signal Handler Installation
 
-Three termination signals handled — lines 1665–1703:
+Three termination signals handled — [lines 1665–1703](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L1665-L1703):
 
 \lstset{language=C++}
 ```cpp
@@ -239,7 +239,7 @@ sigaction(SIGINT, &act, 0);
 
 ## Signal Handler Implementation
 
-Lines 1717–1747 — minimal, safe handler:
+[Lines 1717–1747](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L1717-L1747) — minimal, safe handler:
 
 \lstset{language=C++}
 ```cpp
@@ -263,7 +263,7 @@ void handlerSigTerm( int signum,
 
 ## SIGUSR1: Thread Wake-Up
 
-Line 1749:
+[Line 1749](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L1749):
 
 \lstset{language=C++}
 ```cpp
@@ -277,7 +277,7 @@ Line 1749:
 
 ## PID Lock Mechanism
 
-Lines 1796–1924 — robust stale-PID detection:
+[Lines 1796–1924](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L1796-L1924) — robust stale-PID detection:
 
 \lstset{language=C++}
 ```cpp
@@ -300,7 +300,7 @@ if(invokedPos != std::string::npos)
 
 ## PID Lock: Stale Detection
 
-The rejection message when a duplicate is found — line 1882:
+The rejection message when a duplicate is found — [line 1882](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L1882):
 
 \lstset{language=C++}
 ```cpp
@@ -308,7 +308,7 @@ logss << "PID already locked ("
       << testPid  << ").  Time to die.";
 ```
 
-The clean-up path — line 1892:
+The clean-up path — [line 1892](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L1892):
 
 \lstset{language=C++}
 ```cpp
@@ -321,7 +321,7 @@ The clean-up path — line 1892:
 
 ## PID File Location
 
-From `paths.hpp` (lines 60–64):
+From [`paths.hpp`](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/common/paths.hpp#L18-L65) (lines 18–22, 60–64):
 
 \lstset{language=C++}
 ```cpp
@@ -335,7 +335,7 @@ PID files stored at: `/opt/MagAOX/sys/<configName>/pid`
 
 ## Graceful Shutdown Sequence
 
-Lines 1559–1586:
+[Lines 1559–1586](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L1559-L1586):
 
 \lstset{language=C++}
 ```cpp
@@ -355,7 +355,7 @@ return 0;
 
 ## Shared Memory Fault Recovery
 
-`shmimMonitor.hpp` lines 177–185 — handling buffer resets:
+[`shmimMonitor.hpp`](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/dev/shmimMonitor.hpp#L177-L185) lines 177–185 — handling buffer resets:
 
 \lstset{language=C++}
 ```cpp
@@ -376,7 +376,7 @@ bool m_restart{false};
 
 ## shmimMonitor: Restart Detection Logic
 
-Three triggers for `m_restart` — lines 681–698:
+Three triggers for `m_restart` — [lines 681–698](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/dev/shmimMonitor.hpp#L681-L698):
 
 \lstset{language=C++}
 ```cpp
@@ -404,7 +404,7 @@ if (buffer.st_ino != m_inode)
 
 ## shmimMonitor: Reinitialize on Restart
 
-Lines 439–496 — the recovery path:
+[Lines 439–496](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/dev/shmimMonitor.hpp#L439-L496) — the recovery path:
 
 \lstset{language=C++}
 ```cpp
@@ -438,9 +438,9 @@ if (m_restart)
 
 ## indiserver Overview
 
-`lib/INDI/INDI/indiserver.c` — the core resurrection engine.
+[`lib/INDI/INDI/indiserver.c`](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c) — the core resurrection engine.
 
-From the file header comment (lines 13–14):
+From the file header comment ([lines 13–14](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L13-L14)):
 
 \lstset{language=C}
 ```c
@@ -450,7 +450,7 @@ From the file header comment (lines 13–14):
  */
 ```
 
-And the threading model (lines 46–48):
+And the threading model ([lines 46–48](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L46-L48)):
 
 \lstset{language=C}
 ```c
@@ -461,7 +461,7 @@ And the threading model (lines 46–48):
 
 ## Driver Information Structure
 
-`DvrInfo` struct — lines 149–171:
+`DvrInfo` struct — [lines 149–171](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L149-L171):
 
 \lstset{language=C}
 ```c
@@ -484,7 +484,7 @@ typedef struct {
 
 ## Crash Detection: Method 1 — EOF on stdout
 
-`driverStdoutReaderThread` — lines 1039–1046:
+`driverStdoutReaderThread` — [lines 1039–1046](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L1039-L1046):
 
 \lstset{language=C}
 ```c
@@ -506,7 +506,7 @@ if (nr <= 0) {
 
 ## Crash Detection: Method 2 — XML Parse Error
 
-Lines 1117–1120:
+[Lines 1117–1120](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L1117-L1120):
 
 \lstset{language=C}
 ```c
@@ -522,7 +522,7 @@ Lines 1117–1120:
 
 ## Crash Detection: Method 3 — Write Failure
 
-Lines 1212–1226:
+[Lines 1212–1226](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L1212-L1226):
 
 \lstset{language=C}
 ```c
@@ -540,7 +540,7 @@ if (nw <= 0) {
 
 ## Error Notification: onDriverError()
 
-Lines 1244–1254 — thread-safe error signaling:
+[Lines 1244–1254](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L1244-L1254) — thread-safe error signaling:
 
 \lstset{language=C}
 ```c
@@ -560,7 +560,7 @@ static void onDriverError (DvrInfo *dp)
 
 ## The Restart Function: restartDvr()
 
-Lines 1318–1388 — the complete restart procedure:
+[Lines 1318–1388](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L1318-L1388) — the complete restart procedure:
 
 \lstset{language=C}
 ```c
@@ -585,7 +585,7 @@ static void restartDvr (DvrInfo *dp)
 
 ## restartDvr(): Status Analysis
 
-Lines 1335–1352 — thorough exit analysis:
+[Lines 1335–1352](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L1335-L1352) — thorough exit analysis:
 
 \lstset{language=C}
 ```c
@@ -612,7 +612,7 @@ if (WIFEXITED(status)) {
 
 ## restartDvr(): Resource Cleanup
 
-Lines 1367–1384 — comprehensive cleanup:
+[Lines 1367–1384](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L1367-L1384) — comprehensive cleanup:
 
 \lstset{language=C}
 ```c
@@ -639,7 +639,7 @@ startDvr (dp);
 
 ## Rate Limiting: RESTARTDT
 
-Lines 88–89 — hardcoded constants:
+[Lines 88–89](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L88-L90) — hardcoded constants:
 
 \lstset{language=C}
 ```c
@@ -652,7 +652,7 @@ static char lockout_fn[] = "/tmp/noindi";
 
 ## Rate Limiting: Implementation
 
-`startDvr()` — lines 428–446:
+`startDvr()` — [lines 428–446](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L428-L446):
 
 \lstset{language=C}
 ```c
@@ -697,7 +697,7 @@ static void startDvr (DvrInfo *dp)
 
 ## The Lockout File: /tmp/noindi
 
-Lines 463–468 — external restart suppression:
+[Lines 463–468](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L463-L468) — external restart suppression:
 
 \lstset{language=C}
 ```c
@@ -735,7 +735,7 @@ while (!ignore_lockout &&
 
 ## Driver Startup: Fork and Exec
 
-`startLocalDvr()` — lines 478–497:
+`startLocalDvr()` — [lines 478–497](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L478-L497):
 
 \lstset{language=C}
 ```c
@@ -764,7 +764,7 @@ if (pid == 0) {
 
 ## Client-Side: Surviving indiserver Restarts
 
-`MagAOXApp.hpp` line 2798 — transparent re-registration:
+[`MagAOXApp.hpp` line 2798](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L2798-L2799) — transparent re-registration:
 
 \lstset{language=C++}
 ```cpp
@@ -773,7 +773,7 @@ if (pid == 0) {
 sendGetPropertySetList(true);
 ```
 
-And in the main loop — lines 1541–1545:
+And in the main loop — [lines 1541–1545](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L1541-L1545):
 
 \lstset{language=C++}
 ```cpp
@@ -792,7 +792,7 @@ sendGetPropertySetList(false);
 
 ## xindiserver Architecture
 
-`utils/xindiserver/xindiserver.hpp` lines 116–148:
+[`utils/xindiserver/xindiserver.hpp`](https://github.com/uasal/XWCToolkit/blob/main/utils/xindiserver/xindiserver.hpp#L116-L148) lines 116–148:
 
 \lstset{language=C++}
 ```cpp
@@ -821,7 +821,7 @@ class xindiserver : public MagAOXApp<false>
 
 ## The Control FIFO
 
-`MagAOXApp.hpp` lines 584–587 — restart signaling channel:
+[`MagAOXApp.hpp` lines 584–587](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L584-L587) — restart signaling channel:
 
 \lstset{language=C++}
 ```cpp
@@ -939,7 +939,7 @@ In long-running embedded systems, memory leaks from error paths during restart c
 
 ## Fault Containment Violation
 
-The `exit(1)` in `restartDvr()` — line 1340:
+The `exit(1)` in `restartDvr()` — [line 1340](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L1340):
 
 \lstset{language=C}
 ```c
