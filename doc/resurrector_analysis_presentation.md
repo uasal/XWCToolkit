@@ -986,3 +986,58 @@ XWCToolkit implements a **competent but incomplete** resurrection architecture:
 . . .
 
 The foundation is sound. The gaps are addressable. Closing them would make XWCToolkit suitable for high-reliability, long-duration autonomous embedded systems.
+
+# Appendix: Review Discussion
+
+## Review Item 1 — "All XWCToolkit applications"
+
+| Issue | Proposed Fix | Response |
+|-------|-------------|----------|
+| The report states *"All XWCToolkit applications derive from `MagAOXApp`"* which is not literally true — utility programs such as `xindidriver`, `xrif2fits`, `instGraph`, and `logdump` do not derive from `MagAOXApp`. | Change to *"Most runtime application daemons in XWCToolkit derive from `MagAOXApp`"*. | **Minor correction.** In the context of this presentation (resurrection architecture for supervised daemons), the original statement is substantially correct — all applications that *participate in the resurrection lifecycle* do derive from `MagAOXApp`. The utilities are out of scope. However, the literal wording is imprecise, and a clarifying qualifier would improve accuracy. |
+
+## Review Item 2 — Historical TODO claim
+
+| Issue | Proposed Fix | Response |
+|-------|-------------|----------|
+| The report states *"This TODO has been present since the original MagAO-X codebase"* as fact, but the repository has only one commit and the claim cannot be verified from git history. | Change to *"This TODO appears to be longstanding, likely inherited from the original MagAO-X codebase"*. | **Minor correction.** The TODO's `\todo` doxygen style and the comment's wording are consistent with longstanding code, and XWCToolkit is publicly documented as a fork of MagAO-X. The original statement is a reasonable inference, but softening it to "appears to be" is more rigorous since the git history does not extend back far enough to prove the claim. |
+
+## Review Item 3 — "safe handler" self-contradiction
+
+| Issue | Proposed Fix | Response |
+|-------|-------------|----------|
+| The heading says *"minimal, safe handler"* but the body two lines below notes that `std::cerr` and `log<text_log>()` are *"technically not async-signal-safe"*, creating an internal contradiction. | Change heading to *"minimal but not fully async-signal-safe handler"*. | **Requiring correction.** The report contradicts itself — the heading calls the handler "safe" while the weakness paragraph correctly identifies that `std::string` allocation, `std::cerr`, and logging in a signal handler are not async-signal-safe per POSIX. The heading should be updated to be consistent with the body's own analysis. |
+
+## Review Item 4 — "incomplete" control FIFO
+
+| Issue | Proposed Fix | Response |
+|-------|-------------|----------|
+| The report states the control FIFO signaling mechanism is *"incomplete in the toolkit"*. Review of `indiDriver.hpp:156–176`, `xindidriver.cpp:281–310`, and `MagAOXApp.hpp:2614` shows the mechanism is fully implemented: the FIFO is created, written to on error, read by `ctrlThread`, and triggers a process exit allowing `indiserver` to restart the driver. | Change to *"limited to restart signaling only"* with cross-references to the implementing files. | **Misunderstanding by reviewing agent.** The mechanism is not incomplete — it is functional and works as designed. The original source comment *"currently only used to signal restarts"* describes a deliberate scope limitation, not a missing implementation. The word "incomplete" mischaracterizes working code. |
+
+## Review Item 5 — Self-referential systemd search claim
+
+| Issue | Proposed Fix | Response |
+|-------|-------------|----------|
+| The report states *"search for `systemd`, `Restart=`, `WantedBy` returns zero results"* but the presentation document itself contains `systemd` five times, making the claim self-referentially false. | Qualify the claim: *"no `.service` files exist in the repository, and no source files outside this document reference `systemd`, `Restart=`, or `WantedBy`."* | **Minor correction.** The intent of the claim is correct — no actual systemd integration exists in the source code. However, the literal wording is inaccurate because the document making the claim is itself a search result. A small qualification resolves the issue without changing the substance. |
+
+## Review Item 6 — Summary table "Incomplete control FIFO"
+
+| Issue | Proposed Fix | Response |
+|-------|-------------|----------|
+| Row 9 of the weakness summary table says *"Incomplete control FIFO"* at `MagAOXApp.hpp:585`, repeating the same mischaracterization as Item 4. | Change to *"Control FIFO limited to restart signaling"*. | **Misunderstanding by reviewing agent.** Same as Item 4 — the FIFO mechanism is complete and functional. The summary table should reflect the actual scope limitation, not imply missing implementation. |
+
+## Disclaimer
+
+\begin{center}
+\textbf{Important Notice}
+\end{center}
+
+This entire analysis — including the original resurrector report, the subsequent review, and the review responses above — was produced through a discussion between LLM (Large Language Model) agents.
+
+While the agents have inspected the actual source code and attempted to ground all claims in specific file locations and line numbers, **LLM agents may not have the full context** of the project's:
+
+- Design intent and architectural rationale
+- Deployment environment and operational procedures
+- Historical decisions and trade-offs
+- External documentation, wikis, or institutional knowledge not present in the repository
+
+All findings and assessments should be reviewed by domain experts familiar with the XWCToolkit and its target deployment environment before being acted upon.
