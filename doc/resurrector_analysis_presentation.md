@@ -44,7 +44,7 @@ Layer 1: [In-process recovery — MagAOXApp]
 
 ## The Application Base Class
 
-- All XWCToolkit applications derive from `MagAOXApp`
+- Most runtime application daemons in XWCToolkit derive from `MagAOXApp`
 - Provides: lifecycle management, state machine, signal handling, PID locking
 - Source: `XWCTK/app/MagAOXApp.hpp`
 
@@ -211,7 +211,7 @@ Line 1536, inside the main event loop:
 
 - No watchdog timer to detect if `appLogic()` hangs or deadlocks
 - No liveness signal for external supervisors
-- This TODO has been present since the original MagAO-X codebase
+- This TODO appears to be longstanding, likely inherited from the original MagAO-X codebase
 - For high-reliability embedded systems, this is a **critical gap**
 
 # Layer 1: Signal Handling
@@ -239,7 +239,7 @@ sigaction(SIGINT, &act, 0);
 
 ## Signal Handler Implementation
 
-Lines 1717–1747 — minimal, safe handler:
+Lines 1717–1747 — minimal but not fully async-signal-safe handler:
 
 \lstset{language=C++}
 ```cpp
@@ -831,13 +831,13 @@ class xindiserver : public MagAOXApp<false>
 std::string m_driverCtrlName;
 ```
 
-**Weakness:** The comment says *"currently only used to signal restarts"* — but the implementation of this signaling mechanism is **incomplete** in the toolkit.
+**Weakness:** The implementation is **limited to restart signaling only** (see `indiDriver.hpp:156–176` and `xindidriver.cpp:425`), with no broader control channel.
 
 # Layer 3: External Supervisor (Missing)
 
 ## What Is Not in the Repository
 
-**No systemd unit files** — search for `systemd`, `Restart=`, `WantedBy` returns zero results.
+**No systemd unit files** — no `.service` files exist in the repository, and no source files outside this document reference `systemd`, `Restart=`, or `WantedBy`.
 
 **No external process supervisor** of any kind:
 
@@ -906,7 +906,7 @@ For high-reliability embedded computing:
 |----|----------|----------|
 | 7 | No post-restart health check | `indiserver.c:1384` |
 | 8 | Lockout file in `/tmp` | `indiserver.c:90` |
-| 9 | Incomplete control FIFO | `MagAOXApp.hpp:585` |
+| 9 | Control FIFO limited to restart signaling | `MagAOXApp.hpp:585` |
 | 10 | Manual C memory mgmt | `indiserver.c:1367` |
 | 11 | Hardcoded FD limit | `indiserver.c:490` |
 
