@@ -770,6 +770,8 @@ sigusr12_handler(int sig, siginfo_t *si,
 
 **Weakness:** `std::cerr`, `strerror()`, and `std::endl` are **not async-signal-safe** per POSIX.
 
+**Weakness:** `strerror(sig)` is called with a signal number, but `strerror()` expects an `errno` value — `strsignal(sig)` should be used instead. This is a bug in the source code.
+
 **Weakness:** `no_SIGUSR1_yet` and `no_SIGUSR2_yet` are plain `bool` — should be `volatile sig_atomic_t`.
 
 ## Stop Signal Is SIGUSR2, Not SIGTERM
@@ -800,11 +802,12 @@ When `stop_hexbeater` sends `SIGUSR2`, there is no escalation to `SIGKILL` if th
 | 1 | No exponential backoff | High | `resurrector.hpp:143–159` |
 | 2 | `no_SIGUSR*_yet` not `volatile sig_atomic_t` | High | `resurrector_indi.cpp:34–35` |
 | 3 | Signal handler uses non-async-safe functions | Medium | `resurrector_indi.cpp:40–49` |
-| 4 | Stop signal is SIGUSR2 not SIGTERM | Medium | `HexbeatMonitor.hpp:300` |
-| 5 | No shutdown escalation (SIGTERM→SIGKILL) | Medium | `HexbeatMonitor.hpp:292–306` |
-| 6 | FD\_SETSIZE memory waste / select(2) limit | Low | `resurrector.hpp:8` |
-| 7 | No post-restart health check | Low | `HexbeatMonitor.hpp:829` |
-| 8 | Fixed 10s initial delay for all C++ processes | Low | `resurrector_indi.cpp:196` |
+| 4 | `strerror(sig)` instead of `strsignal(sig)` | Medium | `resurrector_indi.cpp:43` |
+| 5 | Stop signal is SIGUSR2 not SIGTERM | Medium | `HexbeatMonitor.hpp:300` |
+| 6 | No shutdown escalation (SIGTERM→SIGKILL) | Medium | `HexbeatMonitor.hpp:292–306` |
+| 7 | FD\_SETSIZE memory waste / select(2) limit | Low | `resurrector.hpp:8` |
+| 8 | No post-restart health check | Low | `HexbeatMonitor.hpp:829` |
+| 9 | Fixed 10s initial delay for all C++ processes | Low | `resurrector_indi.cpp:196` |
 
 # Comparison: resurrector\_indi vs xctrl vs indiserver
 
