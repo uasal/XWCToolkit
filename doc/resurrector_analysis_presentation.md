@@ -17,6 +17,38 @@ header-includes:
   - \setbeamertemplate{footline}{\hfill\insertframenumber/\inserttotalframenumber\hspace{2mm}\vspace{2mm}}
 ---
 
+# Executive Summary
+
+## Executive Summary --- Original Findings
+
+This presentation documents the **process-supervision architecture** that XWCToolkit inherits from MagAO-X, and identifies the gaps that motivate the `resurrector_indi` work on the [`dev-resurrector`](https://github.com/magao-x/MagAOX/tree/dev-resurrector) branch.
+
+\footnotesize
+
+- **No standalone resurrector in XWCToolkit.** Recovery is distributed across three nominal layers — in-process (`MagAOXApp`, `shmimMonitor`), driver-restart (`indiserver`), and an *absent* external supervisor.
+- **Three concrete gaps in the current code base:**
+   1. **No application-level heartbeat.** [`XWCTK/app/MagAOXApp.hpp` line 1536](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L1536): `/** \todo Need a heartbeat update here. */`
+   2. **No external supervisor.** No systemd units or restart scripts found in-tree.
+   3. **No lockup detection.** If [`appLogic()`](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp) deadlocks, nothing notices.
+- **In-process recovery does exist** for shared-memory faults: [`XWCTK/app/dev/shmimMonitor.hpp` line 183](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/dev/shmimMonitor.hpp#L183) sets `m_restart` from a `SIGSEGV`/`SIGBUS` handler, and the indiserver driver-restart logic lives at [`lib/INDI/INDI/indiserver.c` lines 384–437](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L384-L437) (10 s `RESTARTDT`, `/tmp/noindi` lockout).
+- **Ancillary defects identified:** `m_shutdown` declared as plain `int` ([`MagAOXApp.hpp:102`](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L102)) rather than `volatile sig_atomic_t`; signal handler uses non-async-signal-safe `std::cerr`/`log<text_log>` ([`MagAOXApp.hpp:1718–1747`](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L1718-L1747)).
+
+## Executive Summary --- New Findings (Claude Opus 4.7 deep review, 2026-04-20)
+
+The following findings were added by a deep cross-check of this deck against the current `HEAD` of [`uasal/XWCToolkit`](https://github.com/uasal/XWCToolkit) and [`magao-x/MagAOX@dev-resurrector`](https://github.com/magao-x/MagAOX/tree/dev-resurrector). All cited file:line locations were verified in this review.
+
+\footnotesize
+
+- **The "three layers" are not independent.** Layer 1 ([`MagAOXApp`](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp), [`shmimMonitor.hpp:177–183`](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/dev/shmimMonitor.hpp#L177-L183)) only fires if the process is alive enough to run its handler; Layer 2 ([`indiserver.c:1338–1340`](https://github.com/uasal/XWCToolkit/blob/main/lib/INDI/INDI/indiserver.c#L1338-L1340), `exit(1)` on `EXITEXFAIL`) only fires if `indiserver` itself is alive. A single segfault in the wrong process kills both. The framing as *defense in depth* over-sells the pre-resurrector state — `resurrector_indi` is the missing **independent** layer.
+- **The `MagAOXApp.hpp:1536` TODO is unchanged on `dev-resurrector`.** The supervisor side of the hexbeat protocol exists in [`utils/resurrector_indi/HexbeatMonitor.hpp`](https://github.com/magao-x/MagAOX/blob/dev-resurrector/utils/resurrector_indi/HexbeatMonitor.hpp), but the *application* side is documented (README diagram) rather than wired into `MagAOXApp`'s main loop. End-to-end lockup detection therefore depends on a separate `resurrectee` integration in [`libMagAOX/`](https://github.com/magao-x/MagAOX/tree/dev-resurrector/libMagAOX).
+- **The "no systemd in repo" claim is self-referential.** A repo-wide grep for `systemd|WatchdogSec|Restart=` returns only the two presentations themselves — substantively correct, but the deck's own searches are circular. (Already flagged in the appendix; surfaced here.)
+- **Cosmetic citation drift:** `shmimMonitor.hpp` `m_restart` is at line 183, not the 177–185 range cited later in the deck. Substantive content unaffected.
+- **Embedded reliability uplift, not closure.** Even with `resurrector_indi` adopted: there is no upstream watchdog over the supervisor itself (`/dev/watchdog` or systemd `WatchdogSec=`), no persistent restart accounting across supervisor restarts, and no fail-safe hardware hook (mirrors→flat, motors→home, lasers→off) when restart limits are exceeded. See companion deck for traces.
+
+\normalsize
+
+\tiny *New-findings authorship: Claude Opus 4.7. Generated 2026-04-20; verified against `uasal/XWCToolkit@main` and `magao-x/MagAOX@dev-resurrector`. Treat as advisory, not authoritative — verify each citation before quoting.*
+
 # Overview
 
 ## What Is the "Resurrector"?

@@ -17,6 +17,41 @@ header-includes:
   - \setbeamertemplate{footline}{\hfill\insertframenumber/\inserttotalframenumber\hspace{2mm}\vspace{2mm}}
 ---
 
+# Executive Summary
+
+## Executive Summary --- Original Findings
+
+This presentation documents how [`resurrector_indi`](https://github.com/magao-x/MagAOX/tree/dev-resurrector/utils/resurrector_indi) on the [`dev-resurrector`](https://github.com/magao-x/MagAOX/tree/dev-resurrector) branch of `magao-x/MagAOX` changes system reliability, replacing the operator-driven `xctrl` Python script with a compiled C++ supervisor.
+
+\footnotesize
+
+- **Closes the major reliability gaps** identified in the predecessor [`resurrector_analysis_presentation.md`](resurrector_analysis_presentation.md): no application heartbeat, no external supervisor, no lockup detection.
+- **Hexbeat protocol** (9-digit hex Unix-time deadline, newline-terminated) defined in [`HexbeatMonitor.hpp` lines 52–58](https://github.com/magao-x/MagAOX/blob/dev-resurrector/utils/resurrector_indi/HexbeatMonitor.hpp#L52-L58); supervisor checks deadlines via lexicographic 9-character compare ([`HexbeatMonitor.hpp:489–493`](https://github.com/magao-x/MagAOX/blob/dev-resurrector/utils/resurrector_indi/HexbeatMonitor.hpp#L489-L493)).
+- **Single-threaded `select(2)` event loop** in the supervisor — predictable, race-free, easy to reason about.
+- **Mark-and-sweep reconfiguration on `SIGUSR2`** preserves untouched children; `/proc` scan ([`HexbeatMonitor.hpp:404`](https://github.com/magao-x/MagAOX/blob/dev-resurrector/utils/resurrector_indi/HexbeatMonitor.hpp#L404)) lets the supervisor restart without disrupting healthy hexbeaters.
+- **Defects identified:** `strerror(sig)` should be `strsignal(sig)` ([`resurrector_indi.cpp:43`](https://github.com/magao-x/MagAOX/blob/dev-resurrector/utils/resurrector_indi/resurrector_indi.cpp#L43)); `no_SIGUSR*_yet` flags should be `volatile sig_atomic_t`; signal handler is not async-signal-safe; no exponential backoff on restarts; `kill(pid, SIGUSR2)` for stop with no SIGTERM→SIGKILL escalation ([`HexbeatMonitor.hpp:300`](https://github.com/magao-x/MagAOX/blob/dev-resurrector/utils/resurrector_indi/HexbeatMonitor.hpp#L300)); `select(2)` instead of `poll`/`epoll`.
+
+## Executive Summary --- New Findings (Claude Opus 4.7 deep review, 2026-04-20)
+
+The following findings were added by a deep cross-check of this deck against the current `HEAD` of [`magao-x/MagAOX@dev-resurrector`](https://github.com/magao-x/MagAOX/tree/dev-resurrector) and [`uasal/XWCToolkit@main`](https://github.com/uasal/XWCToolkit). Verified file:line traces below.
+
+\footnotesize
+
+- **The supervisor has no watchdog** — *quis custodiet ipsos custodes?* If `resurrector_indi` itself deadlocks (kernel bug in `select(2)`, stuck `open()` on a hung mount), every child happily writes hexbeats but nobody reads them. No `/dev/watchdog` ping and no systemd `WatchdogSec=` integration. **Most important remaining embedded gap.**
+- **`exit(1)` on `opendir("/proc")` failure** — [`HexbeatMonitor.hpp:404`](https://github.com/magao-x/MagAOX/blob/dev-resurrector/utils/resurrector_indi/HexbeatMonitor.hpp#L404). A supervisor should never terminate on a transient OS error; should log and retry.
+- **`waitpid(-1, ...)` reaps process-group children** — [`HexbeatMonitor.hpp` `hbm_sigchld_handler`](https://github.com/magao-x/MagAOX/blob/dev-resurrector/utils/resurrector_indi/HexbeatMonitor.hpp). Will silently reap unrelated children if the supervisor shares a process group with other long-lived jobs.
+- **`va_list`-based path discovery has no termination check** — [`resurrector.hpp` `open_hexbeater` ~line 163](https://github.com/magao-x/MagAOX/blob/dev-resurrector/utils/resurrector_indi/resurrector.hpp#L163). A missing trailing `NULL` segfaults the supervisor itself.
+- **No persistent restart accounting** — `m_restart_max` ([`HexbeatMonitor.hpp`](https://github.com/magao-x/MagAOX/blob/dev-resurrector/utils/resurrector_indi/HexbeatMonitor.hpp)) resets to zero every time the supervisor restarts. A child stuck in a crash-restart-crash loop only counts within a single supervisor lifetime.
+- **No restart provenance delivered to children** — no `$INVOCATION_ID`/`$RESTART`-equivalent so that a restarted child can re-establish hardware state knowing it is *not* a first start.
+- **No fail-safe hardware hook** when restart limits exceeded (mirrors → flat, motors → home, lasers → off). For embedded hardware control this is a missing primitive.
+- **"FD_SETSIZE memory waste" is overstated.** With ~30 INDI drivers on a host, the cost is a few hundred KB — negligible on modern ARM SoCs. Recommend downgrading severity in the body slides.
+- **"No exponential backoff" rated High is debatable.** Fixed-interval restart surfaces repeated crashes to operators; backoff hides them. For a human-in-the-loop observatory/hardware-control workflow, fixed interval may be intentional.
+- **End-to-end chain not yet closed.** [`XWCTK/app/MagAOXApp.hpp:1536`](https://github.com/uasal/XWCToolkit/blob/main/XWCTK/app/MagAOXApp.hpp#L1536) (`/** \todo Need a heartbeat update here. */`) is unchanged. The supervisor side exists; the application side hexbeat-write is documented in the README diagram but not wired into `MagAOXApp` itself. Lockup detection works only for processes that actually call into the resurrectee API in [`libMagAOX/`](https://github.com/magao-x/MagAOX/tree/dev-resurrector/libMagAOX).
+
+\normalsize
+
+\tiny *New-findings authorship: Claude Opus 4.7. Generated 2026-04-20; verified against `magao-x/MagAOX@dev-resurrector` and `uasal/XWCToolkit@main`. Treat as advisory, not authoritative — verify each citation before quoting.*
+
 # Overview
 
 ## What Is resurrector\_indi?
